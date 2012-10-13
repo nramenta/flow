@@ -224,7 +224,7 @@ and `]` operator:
     {{ users[0] }}
 
 The `.` operator is more restrictive: only tokens of name type can be used as
-the attribute. Tokens of name type begins with an alphabet or and underscore and
+the attribute. Tokens of name type begins with an alphabet or an underscore and
 can only contain alphanumeric and dash characters.
 
 One special attribute access rules for arrays is the ability to invoke closure
