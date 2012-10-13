@@ -16,7 +16,7 @@ configuration is:
 
 ```
 {
-    require: {
+    "require": {
         "flow/flow": "@dev"
     }
 }
