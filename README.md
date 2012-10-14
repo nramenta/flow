@@ -417,6 +417,9 @@ You can also iterate as key and value pairs by using a comma:
         <p>{{ key .. " = " .. value }}</p>
     {% endfor %}
 
+Both `key` and `value` in the example above are local to the iteration. They
+will retain their previous values, if any, once the iteration stops.
+
 The reserved variable `loop` is available:
 
     {% for user in users %}
