@@ -171,7 +171,7 @@ Use `..` (a double dot) to concatenate between two or more scalars as strings:
 String concatenation has a lower precedence than arithmatic
 operators:
 
-    {{ "1 + 1 = " .. 1 + 1 .. " and everthing is OK again!" }}
+    {{ "1 + 1 = " .. 1 + 1 .. " and everything is OK again!" }}
 
 Will yield
 
@@ -437,7 +437,7 @@ The reserved `loop` variable has a few attributes:
 ### break and continue
 
 You can use `break` and `continue` to break out of a loop and to skip to the
-next iteration, respectively.
+next iteration, respectively:
 
     {# the following will print "1 2 3" #}
     {% for i in [1,2,3,4,5] %}
@@ -516,7 +516,7 @@ declare an `extends` tag anywhere but at the top level scope.
 ## Parent
 
 By using the `parent` tag, you can include the parent block's contents inside
-the child block.
+the child block:
 
     {% block child %}
         {% parent %}
@@ -599,7 +599,7 @@ an inheritance mechanism can potentially induce.
 
 ## Include
 
-Use the `include` tag to include bits and pieces of templates in your template.
+Use the `include` tag to include bits and pieces of templates in your template:
 
     {% include "path/to/sidebar.html" if page.sidebar %}
 
@@ -618,7 +618,7 @@ if used as a filter.
 ### Using Autoescape
 
 Use the auto escape facility if you want all expression output to be escaped
-before printing, minimizing potential XSS attacks.
+before printing, minimizing potential XSS attacks:
 
     {% autoescape on %}
 
@@ -634,7 +634,7 @@ already escaped will _not_ be autoescaped; this special case is why `escape` and
     {% autoescape on %}
     {{ "Dr. Jekyll & Mr. Hyde" | escape }}
 
-You can turn autoescape off any time by simply setting it to off.
+You can turn autoescape off any time by simply setting it to off:
 
     {% autoescape off %}
 
@@ -704,7 +704,7 @@ The semantics are as follows:
 ## Raw Output
 
 Sometimes you need to output raw blocks of text, as in the case of code. You
-can use the raw tag.
+can use the raw tag:
 
     {% raw %}
     I'm inside a raw tag
