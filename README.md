@@ -225,7 +225,7 @@ and `]` operator:
 
 The `.` operator is more restrictive: only tokens of name type can be used as
 the attribute. Tokens of name type begins with an alphabet or an underscore and
-can only contain alphanumeric and dash characters.
+can only contain alphanumeric and underscore characters.
 
 One special attribute access rules for arrays is the ability to invoke closure
 functions stored in arrays:
@@ -249,8 +249,10 @@ And call the `fullname` "method" in the template as follows:
     {{ user.fullname }}
 
 When invoked this way, the closure function will implicitly be passed the array
-it's in as the first argument. This rule lets you have arrays that behave not
-unlike objects: they can access other member values or functions in the array.
+it is in as the first argument. Extra arguments will be passed on to the closure
+function as the second and consecutive arguments. This rule lets you have arrays
+that behave not unlike objects: they can access other member values or functions
+in the array.
 
 ## Helpers 
 
