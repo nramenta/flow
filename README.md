@@ -154,7 +154,7 @@ Which is equivalent to:
     <p>x is between 1 and 10 inclusive.</p>
     {% endif %}
 
-The `in` operator works with arrays:
+The `in` operator works with arrays, iterators and plain objects:
 
     {% if 1 in [1,2,3] %}
     1 is definitely in 1,2,3
@@ -168,8 +168,7 @@ Use `..` (a double dot) to concatenate between two or more scalars as strings:
 
     {{ "Hello," .. " World!" }}
 
-String concatenation has a lower precedence than arithmatic
-operators:
+String concatenation has a lower precedence than arithmatic operators:
 
     {{ "1 + 1 = " .. 1 + 1 .. " and everything is OK again!" }}
 
