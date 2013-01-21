@@ -399,6 +399,8 @@ expression:
 
     {{ error ? '<p>' .. error .. '</p>' :  '<p>success!</p>' }}
 
+The ternary operator has the lowest precedence in an expression.
+
 ## Iteration
 
 Use `for` tags to iterate through each element of an array or iterator.
