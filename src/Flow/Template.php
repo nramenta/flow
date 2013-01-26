@@ -58,7 +58,7 @@ abstract class Template
             throw new \RuntimeException(
                 sprintf(
                     'undefined macro "%s" in %s line %d',
-                    $name, static::FILENAME, $line
+                    $name, static::NAME, $line
                 )
             );
         }
@@ -115,7 +115,7 @@ abstract class Template
             throw new \RuntimeException(
                 sprintf(
                     '%s in %s line %d',
-                    $e->getMessage(), static::FILENAME, $line
+                    $e->getMessage(), static::NAME, $line
                 )
             );
         }
@@ -124,7 +124,7 @@ abstract class Template
         throw new \RuntimeException(
             sprintf(
                 'undefined helper "%s" in %s line %d',
-                $name, static::FILENAME, $line
+                $name, static::NAME, $line
             )
         );
 
