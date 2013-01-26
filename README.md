@@ -17,7 +17,7 @@ configuration is:
 ```
 {
     "require": {
-        "flow/flow": "@dev"
+        "flow/flow": "@stable"
     }
 }
 ```
