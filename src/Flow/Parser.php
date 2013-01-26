@@ -5,7 +5,7 @@ namespace Flow;
 class Parser
 {
     protected $stream;
-    protected $template;
+    protected $name;
     protected $extends;
     protected $blocks;
     protected $currentBlock;
@@ -16,12 +16,12 @@ class Parser
     protected $imports;
     protected $autoEscape;
 
-    public function __construct($stream, $template)
+    public function __construct(TokenStream $stream)
     {
-        $this->stream   = $stream;
-        $this->template = $template;
-        $this->extends  = null;
-        $this->blocks   = array();
+        $this->stream  = $stream;
+        $this->name    = $stream->getName();
+        $this->extends = null;
+        $this->blocks  = array();
 
         $this->currentBlock = array();
 
@@ -48,11 +48,16 @@ class Parser
         $this->autoEscape = array(false);
     }
 
+    public function getName()
+    {
+        return $this->name;
+    }
+
     public function parse()
     {
         $body = $this->subparse();
         return new ModuleNode(
-            $this->template, $this->extends, $this->imports, $this->blocks,
+            $this->name, $this->extends, $this->imports, $this->blocks,
             $this->macros, $body
         );
     }
@@ -76,7 +81,7 @@ class Parser
                             'expected directive, unexpected %s "%s"',
                             $token->getType(true, false), $token->getValue()
                         ),
-                        $token->getLine(), $this->template
+                        $this->getName(), $token->getLine()
                     );
                 }
                 if (!is_null($test) && $token->test($test)) {
@@ -90,7 +95,7 @@ class Parser
                 if (!in_array($token->getValue(), array_keys($this->tags))) {
                     throw new SyntaxError(
                         sprintf('unknown construct "%s"', $token->getValue()),
-                        $token->getLine(), $this->template
+                        $this->getName(), $token->getLine()
                     );
                 }
                 $this->stream->next();
@@ -106,7 +111,7 @@ class Parser
                             "missing construct handler '%s'",
                             $token->getValue()
                         ),
-                        $token->getLine(), $this->template
+                        $this->getName(), $token->getLine()
                     );
                 }
                 if (!is_null($node)) {
@@ -136,7 +141,7 @@ class Parser
             default:
                 throw new SyntaxError(
                     'parser ended up in unsupported state',
-                    $line, $this->template
+                    $this->getName(), $line
                 );
             }
         }
@@ -185,7 +190,7 @@ class Parser
                 break;
             default:
                 throw new SyntaxError(
-                    'malformed if statement', $line, $this->template
+                    'malformed if statement', $this->getName(), $line
                 );
                 break;
             }
@@ -245,7 +250,7 @@ class Parser
         if (!$this->inForLoop) {
             throw new SyntaxError(
                 'unexpected break, not in for loop',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
         $node = $this->parseIfModifier(
@@ -260,7 +265,7 @@ class Parser
         if (!$this->inForLoop) {
             throw new SyntaxError(
                 'unexpected continue, not in for loop',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
         $node = $this->parseIfModifier(
@@ -274,26 +279,28 @@ class Parser
     {
         if (!is_null($this->extends)) {
             throw new SyntaxError(
-                'multiple extend tags',
-                $token->getLine(), $this->template
+                'multiple extends tags',
+                $this->getName(), $token->getLine()
             );
         }
 
         if (!empty($this->currentBlock)) {
             throw new SyntaxError(
                 'cannot declare extends inside blocks',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
         if ($this->inMacro) {
             throw new SyntaxError(
                 'cannot declare extends inside macros',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
-        $this->extends = $this->parseExpression();
+        $this->extends = new ExtendsNode(
+            $this->parseExpression(), $token->getLine()
+        );
         $this->stream->expect(Token::BLOCK_END_TYPE);
         return null;
     }
@@ -321,14 +328,14 @@ class Parser
         if ($this->inMacro) {
             throw new SyntaxError(
                 'cannot declare blocks inside macros',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
         $name = $this->parseName()->getValue();
         if (isset($this->blocks[$name])) {
             throw new SyntaxError(
                 sprintf('block "%s" already defined', $name),
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
         array_push($this->currentBlock, $name);
@@ -361,14 +368,14 @@ class Parser
         if ($this->inMacro) {
             throw new SyntaxError(
                 'cannot call parent block inside macros',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
         if (empty($this->currentBlock)) {
             throw new SyntaxError(
                 'parent must be inside a block',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
@@ -394,7 +401,7 @@ class Parser
         if (empty($this->autoEscape)) {
             throw new SyntaxError(
                 'unmatched endautoescape tag',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
         array_pop($this->autoEscape);
@@ -407,14 +414,14 @@ class Parser
         if (!empty($this->currentBlock)) {
             throw new SyntaxError(
                 'cannot declare macros inside blocks',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
         if ($this->inMacro) {
             throw new SyntaxError(
                 'cannot declare macros inside another macro',
-                $token->getLine(), $this->template
+                $this->getName(), $token->getLine()
             );
         }
 
@@ -447,7 +454,9 @@ class Parser
         $this->stream->expect(Token::NAME_TYPE, 'as');
         $module = $this->stream->expect(Token::NAME_TYPE)->getValue();
         $this->stream->expect(Token::BLOCK_END_TYPE);
-        $this->imports[$module] = $import;
+        $this->imports[$module] = new ImportNode(
+            $module, $import, $token->getLine()
+        );
     }
 
     protected function parseInclude($token)
@@ -725,7 +734,7 @@ class Parser
                         'expected expression, unexpected %s "%s"',
                         $token->getType(true, false), $token->getValue()
                     ),
-                    $token->getLine(), $this->template
+                    $this->getName(), $token->getLine()
                 );
             }
         }

@@ -4,7 +4,6 @@ namespace Flow;
 
 class Lexer
 {
-    protected $filename;
     protected $source;
     protected $line;
     protected $cursor;
@@ -40,23 +39,10 @@ class Lexer
     const REGEX_OPERATOR = '/and\b|xor\b|or\b|not\b|in\b|
         =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\](){}.,%*\/+|?:\-@]/Ax';
 
-    public function __construct($source, $filename = null)
+    public function __construct($name, $source)
     {
-        if (!is_readable($source)) {
-            throw new \RuntimeException('source not found: ' . $source);
-        }
-        $this->setSource(file_get_contents($source), $filename);
-        $this->reset();
-    }
-
-    public function setSource($source, $filename = null)
-    {
-        $this->filename = $filename;
+        $this->name     = $name;
         $this->source   = preg_replace("/(\r\n|\r|\n)/", "\n", $source);
-    }
-
-    public function reset()
-    {
         $this->line     = 1;
         $this->cursor   = 0;
         $this->position = self::POSITION_TEXT;
@@ -71,7 +57,7 @@ class Lexer
             $tokens[] = $token = $this->next();
         } while ($token->getType() !== Token::EOF_TYPE);
 
-        return new TokenStream($tokens, $this->filename);
+        return new TokenStream($this->name, $tokens);
     }
 
     protected function next()
@@ -332,31 +318,35 @@ class Lexer
 
 class SyntaxError extends \Exception
 {
-    public function __construct($message, $line, $file)
+    public function __construct($message, $name, $line)
     {
-        parent::__construct($message . ' in ' . $file . ' line ' . $line .
-            ' (' . $file . ':' . $line . ')');
+        parent::__construct($message . ' in ' . $name . ' line ' . $line);
     }
 }
 
 class TokenStream
 {
-    protected $filename;
+    protected $name;
     protected $tokens;
     protected $currentToken;
     protected $queue;
     protected $cursor;
     protected $eos;
 
-    public function __construct(array $tokens, $filename)
+    public function __construct($name, array $tokens)
     {
-        $this->filename = $filename;
+        $this->name = $name;
         $this->tokens = $tokens;
         $this->currentToken = null;
         $this->queue = array();
         $this->cursor = 0;
         $this->eos = false;
         $this->next();
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     public function next($queue = true)
@@ -413,7 +403,7 @@ class TokenStream
                     "unexpected '%s', expecting %s",
                     $token->getValue(), $expected
                 ),
-                $token->getLine(), $this->filename
+                $this->name, $token->getLine()
             );
         }
         $this->next();

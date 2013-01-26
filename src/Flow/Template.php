@@ -21,6 +21,13 @@ abstract class Template
         $this->stack   = array();
     }
 
+    public function load($template)
+    {
+        return $this->loader->load(
+            $template, static::NAME, $this->getLineTrace()
+        );
+    }
+
     public function displayBlock($name, $context, $blocks, $macros)
     {
         $blocks = $blocks + $this->blocks;
@@ -51,7 +58,7 @@ abstract class Template
             throw new \RuntimeException(
                 sprintf(
                     'undefined macro "%s" in %s line %d',
-                    $name, static::$file, $line
+                    $name, static::FILENAME, $line
                 )
             );
         }
@@ -108,7 +115,7 @@ abstract class Template
             throw new \RuntimeException(
                 sprintf(
                     '%s in %s line %d',
-                    $e->getMessage(), static::$file, $line
+                    $e->getMessage(), static::FILENAME, $line
                 )
             );
         }
@@ -117,7 +124,7 @@ abstract class Template
         throw new \RuntimeException(
             sprintf(
                 'undefined helper "%s" in %s line %d',
-                $name, static::$file, $line
+                $name, static::FILENAME, $line
             )
         );
 
@@ -161,18 +168,6 @@ abstract class Template
             }
         } else {
             return null;
-        }
-
-        try {
-            return call_user_func_array($callable, $args);
-        } catch (\Exception $e) {
-            $line  = $this->getLineTrace();
-            throw new \RuntimeException(
-                sprintf(
-                    '%s in %s line %d',
-                    $e->getMessage(), static::$file, $line
-                )
-            );
         }
     }
 }

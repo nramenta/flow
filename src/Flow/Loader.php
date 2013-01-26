@@ -18,9 +18,9 @@ class Loader
         spl_autoload_register(function($class) {
             $class = explode('\\', $class);
             array_shift($class);
-            $file = __DIR__ . '/' . implode('/', $class) . '.php';
-            if (is_readable($file)) {
-                include $file;
+            $path = __DIR__ . '/' . implode('/', $class) . '.php';
+            if (is_readable($path)) {
+                include $path;
             }
         });
 
@@ -30,25 +30,53 @@ class Loader
     public function __construct($options)
     {
         $this->options = $options + array(
-            'prefix'  => self::CLASS_PREFIX,
             'source'  => '',
             'target'  => '',
             'reload'  => false,
             'helpers' => array(),
         );
+        $this->options['source'] = rtrim($this->options['source'], '/');
+        $this->options['target'] = rtrim($this->options['target'], '/');
     }
 
-    public function load($file, $options = array())
+    public function load($template, $from = null, $line = null)
     {
-        if ($file instanceof Template) {
-            return $file;
+        if ($template instanceof Template) {
+            return $template;
         }
 
-        $options = $options + $this->options;
+        $options = $this->options;
 
-        $class  = $options['prefix'] . md5($file);
-        $source = $options['source'] . DIRECTORY_SEPARATOR . $file;
-        $target = $options['target'] . DIRECTORY_SEPARATOR . $class . '.php';
+        $path = $options['source'] . '/' .
+            (substr($template, 0, 1) !== '/' && isset($from) ?
+                dirname($from) . '/' : null) .
+            $template;
+
+        // source is nowhere to be found
+        if (!($source = realpath($path))) {
+            throw new \RuntimeException(
+                isset($from) ?
+                sprintf(
+                    'error loading %s in %s line %d',
+                    $template, $from, $line
+                ) : sprintf('error loading %s', $template)
+            );
+        }
+
+        // source refers to file outside source directory
+        if (strpos(dirname($source), $options['source']) !== 0) {
+            throw new \RuntimeException(
+                isset($from) ?
+                sprintf(
+                    'error loading %s in %s line %d',
+                    $template, $from, $line
+                ) : sprintf('error loading %s', $template)
+            );
+        }
+
+        $name   = substr($source, strlen($options['source']) + 1);
+        $class  = self::CLASS_PREFIX . md5($name);
+        $target = $options['target'] . '/' . $class . '.php';
         $reload = $options['reload'];
 
         if (!class_exists($class, false)) {
@@ -56,8 +84,18 @@ class Loader
                 filemtime($target) < filemtime($source) ||
                 $reload
             ) {
-                $lexer    = new Lexer($source, $file);
-                $parser   = new Parser($lexer->tokenize(), $file);
+                if (!is_readable($source)) {
+                    throw new \RuntimeException(
+                        isset($from) ?
+                        sprintf(
+                            'error reading %s in %s line %d',
+                            $template, $from, $line
+                        ) : sprintf('error reading %s', $template)
+                    );
+                }
+
+                $lexer    = new Lexer($name, file_get_contents($source));
+                $parser   = new Parser($lexer->tokenize());
                 $compiler = new Compiler($parser->parse());
                 $compiler->compile($target);
             }

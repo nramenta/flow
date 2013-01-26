@@ -132,18 +132,18 @@ class NodeList extends Node
 
 class ModuleNode extends Node
 {
-    protected $template;
+    protected $name;
     protected $extends;
     protected $imports;
     protected $blocks;
     protected $macros;
     protected $body;
 
-    public function __construct($template, $extends, $imports, $blocks, $macros,
+    public function __construct($name, $extends, $imports, $blocks, $macros,
         $body)
     {
-        parent::__construct(1);
-        $this->template = $template;
+        parent::__construct(0);
+        $this->name = $name;
         $this->extends = $extends;
         $this->imports = $imports;
         $this->blocks = $blocks;
@@ -153,18 +153,18 @@ class ModuleNode extends Node
 
     public function compile($compiler, $indent = 0)
     {
-        $class = Loader::CLASS_PREFIX . md5($this->template);
+        $class = Loader::CLASS_PREFIX . md5($this->name);
 
         $compiler->raw("<?php\n");
         $compiler->raw(
-            '// ' . $this->template . ' ' . gmdate('Y-m-d H:i:s T', time()) .
+            '// ' . $this->name . ' ' . gmdate('Y-m-d H:i:s T', time()) .
             "\n", $indent
         );
         $compiler->raw("class $class extends \\Flow\\Template\n", $indent);
         $compiler->raw("{\n", $indent);
 
-        $compiler->raw('protected static $file = ', $indent + 1);
-        $compiler->repr($this->template);
+        $compiler->raw('const NAME = ', $indent + 1);
+        $compiler->repr($this->name);
         $compiler->raw(";\n\n");
 
         $compiler->raw(
@@ -203,10 +203,7 @@ class ModuleNode extends Node
         if (!empty($this->imports)) {
             $compiler->raw('$this->imports = array(' . "\n", $indent + 2);
             foreach ($this->imports as $module => $import) {
-                $compiler->raw("'$module' => ", $indent + 3);
-                $compiler->raw('$loader->load(');
-                $import->compile($compiler);
-                $compiler->raw("),\n");
+                $import->compile($compiler, $indent + 3);
             }
             $compiler->raw(");\n", $indent + 2);
         }
@@ -223,18 +220,10 @@ class ModuleNode extends Node
             'if (is_array($context)) ' .
             '$context = new \\Flow\\Context($context);' . "\n", $indent + 2
         );
-        if ($this->extends) {
-            $compiler->raw('$this->parent = $this->loader->load(', $indent + 2);
-            $this->extends->compile($compiler);
-            $compiler->raw(');' . "\n");
 
-            $compiler->raw('if (isset($this->parent)) {' . "\n", $indent + 2);
-            $compiler->raw(
-                'return $this->parent->display' .
-                '($context, $blocks + $this->blocks, $macros + $this->macros);'.
-                "\n", $indent + 3
-            );
-            $compiler->raw("}\n", $indent + 2);
+        // extends
+        if ($this->extends) {
+            $this->extends->compile($compiler, $indent);
         }
         $this->body->compile($compiler, $indent + 2);
         $compiler->raw("}\n", $indent + 1);
@@ -253,7 +242,7 @@ class ModuleNode extends Node
         $compiler->raw($compiler->getTraceInfo(true) . ";\n");
 
         $compiler->raw("}\n");
-        $compiler->raw('// end of ' . $this->template . "\n");
+        $compiler->raw('// end of ' . $this->name . "\n");
     }
 }
 
@@ -280,6 +269,55 @@ class BlockNode extends Node
         $compiler->raw("{\n", $indent);
         $this->body->compile($compiler, $indent + 1);
         $compiler->raw("}\n", $indent);
+    }
+}
+
+class ExtendsNode extends Node
+{
+    protected $parent;
+
+    public function __construct($parent, $line)
+    {
+        parent::__construct($line);
+        $this->parent = $parent;
+    }
+
+    public function compile($compiler, $indent = 0)
+    {
+        $compiler->addTraceInfo($this, $indent);
+        $compiler->raw('$this->parent = $this->load(', $indent + 2);
+        $this->parent->compile($compiler);
+        $compiler->raw(');' . "\n");
+
+        $compiler->raw('if (isset($this->parent)) {' . "\n", $indent + 2);
+        $compiler->raw(
+            'return $this->parent->display' .
+            '($context, $blocks + $this->blocks, $macros + $this->macros);'.
+            "\n", $indent + 3
+        );
+        $compiler->raw("}\n", $indent + 2);
+    }
+}
+
+class ImportNode extends Node
+{
+    protected $module;
+    protected $import;
+
+    public function __construct($module, $import, $line)
+    {
+        parent::__construct($line);
+        $this->module = $module;
+        $this->import = $import;
+    }
+
+    public function compile($compiler, $indent = 0)
+    {
+        $compiler->addTraceInfo($this, $indent);
+        $compiler->raw("'$this->module' => ", $indent + 3);
+        $compiler->raw('$this->load(');
+        $this->import->compile($compiler);
+        $compiler->raw("),\n");
     }
 }
 
@@ -1027,14 +1065,16 @@ class IncludeNode extends Node
 {
     protected $include;
 
-    public function __construct($include)
+    public function __construct($include, $line)
     {
+        parent::__construct($line);
         $this->include = $include;
     }
 
     public function compile($compiler, $indent = 0)
     {
-        $compiler->raw('$this->loader->load(', $indent);
+        $compiler->addTraceInfo($this, $indent);
+        $compiler->raw('$this->load(', $indent);
         $this->include->compile($compiler);
         $compiler->raw(')->display($context);' . "\n");
     }

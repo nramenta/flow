@@ -49,8 +49,10 @@ The `Loader` constructor accepts an array of options. They are:
 - `source`: Directory to template source files.
 - `target`: Directory to compiled PHP files.
 - `reload`: Set to true to always reload templates; defaults to false.
-- `prefix`: Compiled class name prefix; defaults to `__Template_`.
 - `helpers` : Array of custom helpers.
+
+Any reference to template files outside the `source` directory is considered to
+be an error.
 
 ## Basic Concepts
 
