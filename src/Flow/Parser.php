@@ -441,6 +441,7 @@ class Parser
         }
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $body = $this->subparse('endmacro', true);
+        $this->stream->consume(Token::NAME_TYPE, $name);
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $this->macros[$name] = new MacroNode(
             $name, $args, $body, $token->getLine()
