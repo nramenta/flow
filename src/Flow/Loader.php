@@ -4,7 +4,7 @@ namespace Flow;
 
 class Loader
 {
-    const CLASS_PREFIX = '__Template_';
+    const CLASS_PREFIX = '__FlowTemplate_';
 
     protected $options;
 
