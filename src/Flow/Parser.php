@@ -151,7 +151,7 @@ class Parser
     protected function parseName($expect = true, $match = null)
     {
         static $constants = array('true', 'false', 'null');
-        static $operators = array('not', 'in');
+        static $operators = array('and', 'xor', 'or', 'not', 'in');
 
         if ($this->stream->test(Token::CONSTANT_TYPE, $constants)) {
             return $this->stream->expect(Token::CONSTANT_TYPE, $match);
