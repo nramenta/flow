@@ -1015,17 +1015,24 @@ class MacroNode extends Node
             '($_context = array(), $macros = array())' . "\n", $indent
         );
         $compiler->raw("{\n", $indent);
+
         $compiler->raw(
-            '$context = new \\Flow\\Context($_context + array(' . "\n",
+            '$context = new \\Flow\\Context(array(' . "\n",
             $indent + 1
         );
-        foreach ($this->args as $i => $arg) {
+        $i = 0;
+        foreach ($this->args as $key => $val) {
             $compiler->raw(
-                "'$arg' => isset(\$_context[$i]) ? \$_context[$i] : null,\n",
+                "'$key' => isset(\$_context['$key']) ? \$_context['$key'] : ",
                 $indent + 2
             );
+            $compiler->raw("(isset(\$_context[$i]) ? \$_context[$i] : ");
+            $val->compile($compiler);
+            $compiler->raw("),\n");
+            $i += 1;
         }
         $compiler->raw("));\n", $indent + 1);
+
         $compiler->raw("ob_start();\n", $indent + 1);
         $this->body->compile($compiler, $indent + 1);
         $compiler->raw("return ob_get_clean();\n", $indent + 1);

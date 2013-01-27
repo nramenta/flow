@@ -435,7 +435,13 @@ class Parser
                     if ($this->stream->test(Token::OPERATOR_TYPE, ')'))
                         break;
                 }
-                $args[] = $this->parseName()->getValue();
+                $key = $this->stream->expect(Token::NAME_TYPE)->getValue();
+                if ($this->stream->consume(Token::OPERATOR_TYPE, '=')) {
+                    $val = $this->parseLiteralExpression();
+                } else {
+                    $val = new ConstantExpression(null, $token->getLine());
+                }
+                $args[$key] = $val;
             }
             $this->stream->expect(Token::OPERATOR_TYPE, ')');
         }
@@ -745,6 +751,54 @@ class Parser
         return $this->parsePostfixExpression($node);
     }
 
+    protected function parseLiteralExpression()
+    {
+        $token = $this->stream->getCurrentToken();
+        switch ($token->getType()) {
+        case Token::CONSTANT_TYPE:
+            $this->stream->next();
+            switch ($token->getValue()) {
+            case 'true':
+                $node = new ConstantExpression(true, $token->getLine());
+                break;
+            case 'false':
+                $node = new ConstantExpression(false, $token->getLine());
+                break;
+            case 'null':
+                $node = new ConstantExpression(null, $token->getLine());
+                break;
+            }
+            break;
+        case Token::NUMBER_TYPE:
+            $this->stream->next();
+            if (preg_match('/\./', $token->getValue())) {
+                $node = new ConstantExpression(
+                    floatval($token->getValue()), $token->getLine()
+                );
+            } else {
+                $node = new ConstantExpression(
+                    intval($token->getValue()), $token->getLine()
+                );
+            }
+            break;
+        case Token::STRING_TYPE:
+            $this->stream->next();
+            $node = new StringExpression(
+                strval($token->getValue()), $token->getLine()
+            );
+            break;
+        default:
+            throw new SyntaxError(
+                sprintf(
+                    'expected expression, unexpected %s "%s"',
+                    $token->getType(true, false), $token->getValue()
+                ),
+                $this->getName(), $token->getLine()
+            );
+        }
+        return $this->parsePostfixExpression($node);
+    }
+
     protected function parseFunctionCallExpression($node)
     {
         $line = $this->stream->getCurrentToken()->getLine();
@@ -793,7 +847,6 @@ class Parser
         }
         return new MacroExpression($module, $name, $args, $token->getLine());
     }
-
 
     protected function parseArrayExpression()
     {
