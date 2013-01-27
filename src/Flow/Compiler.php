@@ -976,7 +976,7 @@ class FilterExpression extends Expression
             if ($this->filters[$i] === 'raw') continue;
             list($name, $arguments) = $this->filters[$i];
             if ($name == $raw) continue;
-            $compiler->raw('$this->helper(\'' . $name . '\',');
+            $compiler->raw('$this->helper(\'' . $name . '\', ');
             $postponed[] = $arguments;
         }
 
