@@ -931,6 +931,11 @@ class FilterExpression extends Expression
         $this->autoEscape = $autoEscape;
     }
 
+    public function isRaw()
+    {
+        return in_array('raw', $this->filters);
+    }
+
     public function setAutoEscape($autoEscape = true)
     {
         $this->autoEscape = $autoEscape;
@@ -968,6 +973,7 @@ class FilterExpression extends Expression
         }
 
         for ($i = count($this->filters) - 1; $i >= 0; --$i) {
+            if ($this->filters[$i] === 'raw') continue;
             list($name, $arguments) = $this->filters[$i];
             if ($name == $raw) continue;
             $compiler->raw('$this->helper(\'' . $name . '\',');

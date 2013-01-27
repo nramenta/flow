@@ -126,7 +126,7 @@ class Parser
                 if ($autoEscape) {
                     $filters = array();
                     if ($expr instanceof FilterExpression) {
-                        $expr->setAutoEscape(true);
+                        if (!$expr->isRaw()) $expr->setAutoEscape(true);
                     } else {
                         $expr = new FilterExpression(
                             $expr, $filters, true, $token->getLine()
@@ -348,7 +348,7 @@ class Parser
             if ($autoEscape) {
                 $filters = array();
                 if ($expr instanceof FilterExpression) {
-                    $expr->setAutoEscape(true);
+                    if (!$expr->isRaw()) $expr->setAutoEscape(true);
                 } else {
                     $expr = new FilterExpression(
                         $expr, $filters, true, $token->getLine()
@@ -722,7 +722,10 @@ class Parser
             break;
         default:
             if ($this->stream->consume(Token::OPERATOR_TYPE, '@')) {
-                $node = $this->parseMacroExpression($token);
+                $node = new FilterExpression(
+                    $this->parseMacroExpression($token), array('raw'), false,
+                    $token->getLine()
+                );
             } elseif ($this->stream->consume(Token::OPERATOR_TYPE, '[')) {
                 $node = $this->parseArrayExpression();
                 $this->stream->expect(Token::OPERATOR_TYPE, ']');
