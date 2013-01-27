@@ -688,18 +688,9 @@ class Parser
         $token = $this->stream->getCurrentToken();
         switch ($token->getType()) {
         case Token::CONSTANT_TYPE:
-            $this->stream->next();
-            switch ($token->getValue()) {
-            case 'true':
-                $node = new ConstantExpression(true, $token->getLine());
-                break;
-            case 'false':
-                $node = new ConstantExpression(false, $token->getLine());
-                break;
-            case 'null':
-                $node = new ConstantExpression(null, $token->getLine());
-                break;
-            }
+        case Token::NUMBER_TYPE:
+        case Token::STRING_TYPE:
+            $node = $this->parseLiteralExpression();
             break;
         case Token::NAME_TYPE:
             $this->stream->next();
@@ -707,24 +698,6 @@ class Parser
             if ($this->stream->test(Token::OPERATOR_TYPE, '(')) {
                 $node = $this->parseFunctionCallExpression($node);
             }
-            break;
-        case Token::NUMBER_TYPE:
-            $this->stream->next();
-            if (preg_match('/\./', $token->getValue())) {
-                $node = new ConstantExpression(
-                    floatval($token->getValue()), $token->getLine()
-                );
-            } else {
-                $node = new ConstantExpression(
-                    intval($token->getValue()), $token->getLine()
-                );
-            }
-            break;
-        case Token::STRING_TYPE:
-            $this->stream->next();
-            $node = new StringExpression(
-                strval($token->getValue()), $token->getLine()
-            );
             break;
         default:
             if ($this->stream->consume(Token::OPERATOR_TYPE, '@')) {
