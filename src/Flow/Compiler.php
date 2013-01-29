@@ -285,7 +285,7 @@ class ExtendsNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw('$this->parent = $this->load(', $indent + 2);
+        $compiler->raw('$this->parent = $this->loadExtends(', $indent + 2);
         $this->parent->compile($compiler);
         $compiler->raw(');' . "\n");
 
@@ -315,7 +315,7 @@ class ImportNode extends Node
     {
         $compiler->addTraceInfo($this, $indent);
         $compiler->raw("'$this->module' => ", $indent + 3);
-        $compiler->raw('$this->load(');
+        $compiler->raw('$this->loadImport(');
         $this->import->compile($compiler);
         $compiler->raw("),\n");
     }
@@ -1087,7 +1087,7 @@ class IncludeNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw('$this->load(', $indent);
+        $compiler->raw('$this->loadInclude(', $indent);
         $this->include->compile($compiler);
         $compiler->raw(')->display($context);' . "\n");
     }

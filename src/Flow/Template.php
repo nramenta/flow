@@ -21,11 +21,43 @@ abstract class Template
         $this->stack   = array();
     }
 
-    public function load($template)
+    public function loadExtends($template)
     {
-        return $this->loader->load(
-            $template, static::NAME, $this->getLineTrace()
-        );
+        try {
+            return $this->loader->load($template, static::NAME);
+        } catch (\Exception $e) {
+            throw new \RuntimeException(sprintf(
+                'error extending %s (%s) in %s line %d',
+                $template, $e->getMessage(), static::NAME,
+                $this->getLineTrace($e)
+            ));
+        }
+    }
+
+    public function loadInclude($template)
+    {
+        try {
+            return $this->loader->load($template, static::NAME);
+        } catch (\Exception $e) {
+            throw new \RuntimeException(sprintf(
+                'error including %s (%s) in %s line %d',
+                $template, $e->getMessage(), static::NAME,
+                $this->getLineTrace($e)
+            ));
+        }
+    }
+
+    public function loadImport($template)
+    {
+        try {
+            return $this->loader->load($template, static::NAME);
+        } catch (\Exception $e) {
+            throw new \RuntimeException(sprintf(
+                'error importing %s (%s) in %s line %d',
+                $template, $e->getMessage(), static::NAME,
+                $this->getLineTrace($e)
+            ));
+        }
     }
 
     public function displayBlock($name, $context, $blocks, $macros)
@@ -54,11 +86,10 @@ abstract class Template
         if (isset($macros[$name]) && is_callable($macros[$name])) {
             return call_user_func($macros[$name], $context, $macros);
         } else {
-            $line = $this->getLineTrace();
             throw new \RuntimeException(
                 sprintf(
                     'undefined macro "%s" in %s line %d',
-                    $name, static::NAME, $line
+                    $name, static::NAME, $this->getLineTrace()
                 )
             );
         }
@@ -81,9 +112,11 @@ abstract class Template
         return $this;
     }
 
-    public function getLineTrace()
+    public function getLineTrace(\Exception $e = null)
     {
-        $e = new \Exception;
+        if (!isset($e)) {
+            $e = new \Exception;
+        }
 
         $lines = static::$lines;
 
@@ -111,20 +144,18 @@ abstract class Template
                 return call_user_func_array("\\Flow\\Helper\\$name", $args);
             }
         } catch (\Exception $e) {
-            $line  = $this->getLineTrace();
             throw new \RuntimeException(
                 sprintf(
                     '%s in %s line %d',
-                    $e->getMessage(), static::NAME, $line
+                    $e->getMessage(), static::NAME, $this->getLineTrace($e)
                 )
             );
         }
 
-        $line  = $this->getLineTrace();
         throw new \RuntimeException(
             sprintf(
                 'undefined helper "%s" in %s line %d',
-                $name, static::NAME, $line
+                $name, static::NAME, $this->getLineTrace()
             )
         );
 
