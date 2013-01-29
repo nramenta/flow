@@ -401,6 +401,7 @@ class TextNode extends Node
 
     public function compile($compiler, $indent = 0)
     {
+        if (!strlen($this->data)) return;
         $compiler->addTraceInfo($this, $indent);
         $compiler->raw('echo ', $indent);
         $compiler->repr($this->data);
