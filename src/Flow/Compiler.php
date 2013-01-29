@@ -216,10 +216,6 @@ class ModuleNode extends Node
             "\n", $indent + 1
         );
         $compiler->raw("{\n", $indent + 1);
-        $compiler->raw(
-            'if (is_array($context)) ' .
-            '$context = new \\Flow\\Context($context);' . "\n", $indent + 2
-        );
 
         // extends
         if ($this->extends) {
@@ -856,7 +852,8 @@ class NameExpression extends Expression
 
     public function compile($compiler, $indent = 0)
     {
-        $compiler->raw(sprintf('$context[\'%s\']', $this->name), $indent);
+        $compiler->raw('(isset($context[\'' . $this->name . '\']) ? ', $indent);
+        $compiler->raw('$context[\'' . $this->name . '\'] : null)');
     }
 }
 
@@ -1016,10 +1013,7 @@ class MacroNode extends Node
         );
         $compiler->raw("{\n", $indent);
 
-        $compiler->raw(
-            '$context = new \\Flow\\Context(array(' . "\n",
-            $indent + 1
-        );
+        $compiler->raw('$context = array(' . "\n", $indent + 1);
         $i = 0;
         foreach ($this->args as $key => $val) {
             $compiler->raw(
@@ -1031,7 +1025,7 @@ class MacroNode extends Node
             $compiler->raw("),\n");
             $i += 1;
         }
-        $compiler->raw("));\n", $indent + 1);
+        $compiler->raw(");\n", $indent + 1);
 
         $compiler->raw("ob_start();\n", $indent + 1);
         $this->body->compile($compiler, $indent + 1);

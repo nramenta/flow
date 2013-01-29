@@ -95,16 +95,18 @@ abstract class Template
         }
     }
 
-    public function pushContext($context, $name)
+    public function pushContext(&$context, $name)
     {
         if (!array_key_exists($name, $this->stack)) {
             $this->stack[$name] = array();
         }
-        array_push($this->stack[$name], $context[$name]);
+        array_push($this->stack[$name], isset($context[$name]) ?
+            $context[$name] : null
+        );
         return $this;
     }
 
-    public function popContext($context, $name)
+    public function popContext(&$context, $name)
     {
         if (!empty($this->stack[$name])) {
             $context[$name] = array_pop($this->stack[$name]);
@@ -200,32 +202,6 @@ abstract class Template
         } else {
             return null;
         }
-    }
-}
-
-class Context extends \ArrayObject
-{
-    public function __construct($data = array())
-    {
-        parent::__construct($data, self::STD_PROP_LIST | self::ARRAY_AS_PROPS);
-    }
-
-    public function offsetGet($name)
-    {
-        return $this->offsetExists($name) ? parent::offsetGet($name) : null;
-    }
-
-    public function extend($array = array())
-    {
-        foreach ($array as $key => $value) {
-            $this->offsetSet($key, $value);
-        }
-        return $this;
-    }
-
-    public function toArray()
-    {
-        return $this->getArrayCopy();
     }
 }
 
