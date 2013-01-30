@@ -363,8 +363,8 @@ multiple branches:
         expression 2 is true!
     {% elseif expression_3 %}
         expression 3 is true!
-    {% else expression_4 %}
-        expression 4 is true!
+    {% else %}
+        nothing matches!
     {% endif %}
 
 Values considered to be false are `false`, `null`, `0`, `'0'`, `''`, and `[]`
@@ -466,8 +466,8 @@ variable:
     {{ partial }}
     ...
 
-The scope of variables introduced by the `set` construct is global except when
-used inside macros.
+The scope of variables introduced by the `set` construct is always local to its
+surrounding context.
 
 ## Blocks
 
@@ -500,7 +500,8 @@ Block inheritance works by replacing all blocks in the parent, or extended
 template, with the same blocks found in the child, or extending template, and
 using the parent template as the layout template; the child template layout is
 discarded. This works recursively upwards until there are no more templates to
-be extended.
+be extended. Two blocks in a template cannot have the same name. You can define
+blocks within another block, but not within macros.
 
 ## Extends
 
@@ -543,19 +544,27 @@ To call them:
     {{ @bolder("this is great!") }}
 
 All parameters are optional; they default to `null` while extra positional
-parameters are ignored. You can also use named parameters:
+parameters are ignored. Flow lets you define a custom default value for each
+parameter:
+
+    {% macro bolder(text = "this is a bold text!") %}
+    <b>{{ text }}</b>
+    {% endmacro %}
+
+You can also use named parameters:
 
     {{ @bolder(text="this is a text") }}
 
-Extra named parameters overwrite positional parameters with the same name, and
-are available inside the macro. The parentheses are optional only if there are
-no arguments passed. All macro calls are prepended with the `@` character. This
-is to avoid name collisions with helpers, method calls and attribute access.
-Parameters and variables declared inside macros with the `set` construct are
-local to the macro and will cease to exist once the macro returns.
-
-Declaring macros anywhere but at the top-level scope in a template is a syntax
-error.
+Extra named parameters overwrite positional parameters with the same name and
+previous named parameters with the same name. The parentheses are optional only
+if there are no arguments passed. All macro calls are prepended with the `@`
+character. This is to avoid name collisions with helpers, method calls and
+attribute access. Parameters and variables declared inside macros with the `set`
+construct are local to the macro and will cease to exist once the macro returns.
+Declaring macros inside blocks or other macros is a syntax error. The output of
+macros are by default unescaped, regardless of what the current `autoescape`
+setting is. To escape the output, you must explicitly apply the `escape` or `e`
+filter.
 
 ### Importing macros
 
@@ -564,12 +573,11 @@ in modules or classes. To use macros defined in another template, simply import
 them:
 
     {% import "path/to/form_macros.html" as form %}
-    ...
-    {{ @form.text_input }}
-    ...
 
 All imported macros must be aliased by using the `as` keyword. To call an
-imported macro, simply prepend the macro name with the alias followed by a dot.
+imported macro, simply prepend the macro name with the alias followed by a dot:
+
+    {{ @form.text_input }}
 
 ### Decorating macros
 
@@ -608,10 +616,43 @@ Use the `include` tag to include bits and pieces of templates in your template:
 
     {% include "path/to/sidebar.html" if page.sidebar %}
 
-This is usefull for things like headers, sidebars and footers. Including
+This is useful for things like headers, sidebars and footers. Including
 non-existing or non-readable templates is a runtime error. Note that there are
-no mechanism to prevent circular inclusion of templates although there is a
-runtime limit on recursion.
+no mechanisms to prevent circular inclusion of templates, although there is a
+PHP runtime limit on recursion: either the allowed memory allocation size is
+reached, thereby producing a runtime fatal error, or the number of maximum
+nesting level is reached, if you're using xdebug.
+
+## Path Resolution
+
+Paths referenced in `extends`, `include`, and `import` tags can either be
+absolute from the specified `source` option when instantiating the loader object
+or relative to the current template's directory.
+
+### Absolute Paths
+
+Absolute paths must be prefixed by a `/` character like so:
+
+    {% include "/foo/bar.html" %}
+
+In the example above, if the `source` directory is `/var/www/templates`, then
+the tag will try to include the template `/var/www/templates/foo/bar.html`
+regardless of what the current template's directory is.
+
+### Relative Paths
+
+Relative paths must *not* be prefixed by a `/` character:
+
+    {% include "far.html" %}
+
+In this example, if the `source` directory is `/var/www/templates`, and the
+current template's directory is `boo`, relative to the `source`, then the tag
+will try to include the template `/var/www/templates/boo/far.html`.
+
+### Path Injection Prevention
+
+Flow throws an error if you try to load any file that is outside the `source`
+directory.
 
 ## Output Escaping
 
@@ -630,7 +671,7 @@ before printing, minimizing potential XSS attacks:
 Think of autoescape as implicitly putting an `escape` or `e` filter on every
 expression output. You would normally want to put this directive somewhere near
 the top of your template. Autoescape works on a per template basis; it is never
-inherited from parent templates.
+inherited, included, or imported from other templates.
 
 You do not need to worry if you accidentally double escape a variable. All data
 already escaped will _not_ be autoescaped; this special case is why `escape` and
