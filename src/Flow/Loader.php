@@ -8,6 +8,7 @@ class Loader
 
     protected $options;
     protected $paths;
+    protected $cache;
 
     public static function autoload()
     {
@@ -59,6 +60,7 @@ class Loader
         );
 
         $this->paths = array();
+        $this->cache = array();
     }
 
     public function resolvePath($template, $from)
@@ -103,6 +105,10 @@ class Loader
         $name  = substr($source, strlen($this->options['source']) + 1);
         $class = self::CLASS_PREFIX . md5($name);
 
+        if (isset($this->cache[$class])) {
+            return $this->cache[$class];
+        }
+
         if (!class_exists($class, false)) {
 
             // $source refers to file outside source directory
@@ -133,7 +139,10 @@ class Loader
             }
             require_once $target;
         }
-        return new $class($this, $this->options['helpers']);
+
+        $this->cache[$class] = new $class($this, $this->options['helpers']);
+
+        return $this->cache[$class];
     }
 }
 
