@@ -9,6 +9,7 @@ abstract class Template
     protected $parent;
     protected $blocks;
     protected $macros;
+    protected $imports;
     protected $stack;
 
     public function __construct($loader, $helpers = array())
@@ -18,6 +19,7 @@ abstract class Template
         $this->parent  = null;
         $this->blocks  = array();
         $this->macros  = array();
+        $this->imports = array();
         $this->stack   = array();
     }
 
