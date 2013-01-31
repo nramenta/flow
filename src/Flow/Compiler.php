@@ -4,6 +4,7 @@ namespace Flow;
 
 class Compiler
 {
+    protected $fp;
     protected $node;
     protected $line;
     protected $trace;
