@@ -37,7 +37,7 @@ class Lexer
     const REGEX_STRING   = '/(?:"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|
         \'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\')/Axsmu';
     const REGEX_OPERATOR = '/and\b|xor\b|or\b|not\b|in\b|
-        =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\](){}.,%*\/+|?:\-@]/Ax';
+        =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\]().,%*\/+|?:\-@]/Ax';
 
     public function __construct($name, $source)
     {
@@ -392,19 +392,26 @@ class TokenStream
         }
         if (!$token->test($primary, $secondary)) {
             if (is_null($secondary)) {
-                $expected = Token::getTypeAsString($primary);
+                $expecting = Token::getTypeError($primary);
             } elseif (is_array($secondary)) {
-                $expected = '\'' . implode('\' or \'', $secondary) . '\'';
+                $expecting = '"' . implode('" or "', $secondary) . '"';
             } else {
-                $expected = '\'' . $secondary . '\'';
+                $expecting = '"' . $secondary . '"';
             }
-            throw new SyntaxError(
-                sprintf(
-                    "unexpected '%s', expecting %s",
-                    $token->getValue(), $expected
-                ),
-                $this->name, $token->getLine()
-            );
+            if ($token->getType() === Token::EOF_TYPE) {
+                throw new SyntaxError(
+                    'unexpected end of file',
+                    $this->name, $token->getLine() - 1
+                );
+            } else {
+                throw new SyntaxError(
+                    sprintf(
+                        'unexpected "%s", expecting %s',
+                        str_replace("\n", '\n', $token->getValue()), $expecting
+                    ),
+                    $this->name, $token->getLine()
+                );
+            }
         }
         $this->next();
         return $token;
@@ -516,6 +523,46 @@ class Token
             break;
         }
         return $canonical ? (__CLASS__ . '::' . $name) : $name;
+    }
+
+    public static function getTypeError($type)
+    {
+        switch ($type) {
+        case self::EOF_TYPE:
+            $name = 'end of file';
+            break;
+        case self::TEXT_TYPE:
+            $name = 'text type';
+            break;
+        case self::BLOCK_START_TYPE:
+            $name = 'block start (either "{%" or "{%-")';
+            break;
+        case self::OUTPUT_START_TYPE:
+            $name = 'block start (either "{{" or "{{-")';
+            break;
+        case self::BLOCK_END_TYPE:
+            $name = 'block end (either "%}" or "-%}")';
+            break;
+        case self::OUTPUT_END_TYPE:
+            $name = 'block end (either "}}" or "-}}")';
+            break;
+        case self::NAME_TYPE:
+            $name = 'name type';
+            break;
+        case self::NUMBER_TYPE:
+            $name = 'number type';
+            break;
+        case self::STRING_TYPE:
+            $name = 'string type';
+            break;
+        case self::OPERATOR_TYPE:
+            $name = 'operator type';
+            break;
+        case self::CONSTANT_TYPE:
+            $name = 'constant type (true, false, or null)';
+            break;
+        }
+        return $name;
     }
 
     public function test($type, $values = null)

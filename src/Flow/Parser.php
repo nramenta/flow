@@ -78,8 +78,8 @@ class Parser
                 if ($token->getType() !== Token::NAME_TYPE) {
                     throw new SyntaxError(
                         sprintf(
-                            'expected directive, unexpected %s "%s"',
-                            $token->getType(true, false), $token->getValue()
+                            'unexpected "%s", expecting a valid tag',
+                            str_replace("\n", '\n', $token->getValue())
                         ),
                         $this->getName(), $token->getLine()
                     );
@@ -93,8 +93,19 @@ class Parser
                 }
 
                 if (!in_array($token->getValue(), array_keys($this->tags))) {
+                    if (is_array($test)) {
+                        $expecting = '"' . implode('" or "', $test) . '"';
+                    } elseif ($test) {
+                        $expecting = '"' . $test . '"';
+                    } else {
+                        $expecting = 'a valid tag';
+                    }
                     throw new SyntaxError(
-                        sprintf('unknown construct "%s"', $token->getValue()),
+                        sprintf(
+                            'unexpected "%s", expecting %s',
+                            str_replace("\n", '\n', $token->getValue()),
+                            $expecting
+                        ),
                         $this->getName(), $token->getLine()
                     );
                 }
@@ -108,7 +119,7 @@ class Parser
                 } else {
                     throw new SyntaxError(
                         sprintf(
-                            "missing construct handler '%s'",
+                            'missing construct handler "%s"',
                             $token->getValue()
                         ),
                         $this->getName(), $token->getLine()
@@ -714,8 +725,8 @@ class Parser
             } else {
                 throw new SyntaxError(
                     sprintf(
-                        'expected expression, unexpected %s "%s"',
-                        $token->getType(true, false), $token->getValue()
+                        'unexpected "%s", expecting an expression',
+                        str_replace("\n", '\n', $token->getValue())
                     ),
                     $this->getName(), $token->getLine()
                 );
@@ -763,8 +774,8 @@ class Parser
         default:
             throw new SyntaxError(
                 sprintf(
-                    'expected expression, unexpected %s "%s"',
-                    $token->getType(true, false), $token->getValue()
+                    'unexpected "%s", expecting an expression',
+                    str_replace("\n", '\n', $token->getValue())
                 ),
                 $this->getName(), $token->getLine()
             );
