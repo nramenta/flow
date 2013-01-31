@@ -63,7 +63,7 @@ class Loader
         $this->cache = array();
     }
 
-    public function resolvePath($template, $from)
+    public function resolvePath($template, $from = null)
     {
         $dirname = isset($from) ? trim(dirname($from), './') : '';
 
