@@ -144,5 +144,25 @@ class Loader
 
         return $this->cache[$class];
     }
+
+    public function isValid($template, &$error = null)
+    {
+        if ($template instanceof Template) {
+            return true;
+        }
+
+        $source = $this->resolvePath($template);
+        $name  = substr($source, strlen($this->options['source']) + 1);
+        $class = self::CLASS_PREFIX . md5($name);
+        try {
+            $lexer    = new Lexer($name, file_get_contents($source));
+            $parser   = new Parser($lexer->tokenize());
+            $compiler = new Compiler($parser->parse());
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            return false;
+        }
+        return true;
+    }
 }
 
