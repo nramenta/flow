@@ -6,6 +6,10 @@ class Loader
 {
     const CLASS_PREFIX = '__FlowTemplate_';
 
+    const RECOMPILE_NEVER = -1;
+    const RECOMPILE_NORMAL = 0;
+    const RECOMPILE_ALWAYS = 1;
+
     protected $options;
     protected $paths;
     protected $cache;
@@ -34,7 +38,7 @@ class Loader
         $options += array(
             'source'  => '',
             'target'  => '',
-            'reload'  => false,
+            'mode'    => self::RECOMPILE_NORMAL,
             'helpers' => array(),
         );
 
@@ -55,7 +59,7 @@ class Loader
         $this->options = array(
             'source'  => $source,
             'target'  => $target,
-            'reload'  => $options['reload'],
+            'mode'    => $options['mode'],
             'helpers' => $options['helpers'],
         );
 
@@ -119,19 +123,31 @@ class Loader
                 ));
             }
 
+            // $source is not a readable file
+            if (!is_readable($source)) {
+                throw new \RuntimeException(sprintf(
+                    '%s is not a readable file',
+                    $template
+                ));
+            }
+
             $target = $this->options['target'] . '/' . $class . '.php';
 
-            if (!file_exists($target) ||
-                filemtime($target) < filemtime($source) ||
-                $this->options['reload']
-            ) {
-                if (!is_readable($source)) {
-                    throw new \RuntimeException(sprintf(
-                        '%s is not a readable file',
-                        $template
-                    ));
-                }
+            switch ($this->options['mode']) {
+            case self::RECOMPILE_ALWAYS:
+                $compile = true;
+                break;
+            case self::RECOMPILE_NEVER:
+                $compile = !file_exists($target);
+                break;
+            case self::RECOMPILE_NORMAL:
+            default:
+                $compile = !file_exists($target) ||
+                    filemtime($target) < filemtime($source);
+                break;
+            }
 
+            if ($compile) {
                 $lexer    = new Lexer($name, file_get_contents($source));
                 $parser   = new Parser($lexer->tokenize());
                 $compiler = new Compiler($parser->parse());
@@ -147,13 +163,27 @@ class Loader
 
     public function isValid($template, &$error = null)
     {
-        if ($template instanceof Template) {
-            return true;
-        }
-
         $source = $this->resolvePath($template);
+
         $name  = substr($source, strlen($this->options['source']) + 1);
         $class = self::CLASS_PREFIX . md5($name);
+
+        // $source refers to file outside source directory
+        if (strpos(dirname($source), $this->options['source']) !== 0) {
+            throw new \RuntimeException(sprintf(
+                'the path %s is outside the source directory',
+                $template
+            ));
+        }
+
+        // $source is not a readable file
+        if (!is_readable($source)) {
+            throw new \RuntimeException(sprintf(
+                '%s is not a readable file',
+                $template
+            ));
+        }
+
         try {
             $lexer    = new Lexer($name, file_get_contents($source));
             $parser   = new Parser($lexer->tokenize());

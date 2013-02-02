@@ -48,11 +48,42 @@ The `Loader` constructor accepts an array of options. They are:
 
 - `source`: Directory to template source files.
 - `target`: Directory to compiled PHP files.
-- `reload`: Set to true to always reload templates; defaults to false.
+- `mode`: Recompilation mode.
 - `helpers` : Array of custom helpers.
+
+The `mode` option can be one of the following:
+
+- `Loader::RECOMPILE_NEVER`: Never recompile an already compiled template.
+- `Loader::RECOMPILE_NORMAL`: Only recompile if the compiled template is older
+  than the source file due to modifications.
+- `Loader::RECOMPILE_ALWAYS`: Always recompile whenever possible.
+
+The default mode is `Loader::RECOMPILE_NORMAL`. If a template has never been
+compiled, the `Loader` will compile it once regardless of what the current mode
+is.
 
 Any reference to template files outside the `source` directory is considered to
 be an error.
+
+## Syntax Checking
+
+Syntax checking can be done as following:
+
+```php
+<?php
+require 'path/to/src/Flow/Loader.php';
+use Flow\Loader;
+Loader::autoload();
+$flow = new Loader(array(
+    'source' => 'path/to/templates',
+    'target' => 'path/to/cache',
+));
+
+$file = 'my_template.html';
+if (!$flow->isValid($file, $error)) {
+    echo 'The template ' . $file . ' is not valid: ' . $error;
+}
+```
 
 ## Basic Concepts
 
