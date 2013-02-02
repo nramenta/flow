@@ -37,6 +37,7 @@ $flow = new Loader(array(
     'source' => 'path/to/templates',
     'target' => 'path/to/cache',
 ));
+
 $template = $flow->load('home.html');
 $template->display(array(
     'data_1' => 'My first data',
@@ -59,8 +60,8 @@ The `mode` option can be one of the following:
 - `Loader::RECOMPILE_ALWAYS`: Always recompile whenever possible.
 
 The default mode is `Loader::RECOMPILE_NORMAL`. If a template has never been
-compiled, the `Loader` will compile it once regardless of what the current mode
-is.
+compiled, or the compiled PHP file is missing, the `Loader` will compile it once
+regardless of what the current mode is.
 
 Any reference to template files outside the `source` directory is considered to
 be an error.
@@ -85,10 +86,13 @@ if (!$flow->isValid($file, $error)) {
 }
 ```
 
+The above example will check the template for errors without actually compiling
+it.
+
 ## Basic Concepts
 
 Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly
-for block declaration in template inheritance and control structures. Examples
+for block declarations in template inheritance and control structures. Examples
 of block tags are `block`, `for`, and `if`. Some block tags may have a body
 segment. They're usually enclosed by a corresponding `end<tag>` tag. Flow uses
 `{{` and `}}` to delimit output tags, and `{#` and `#}` to delimit comments.
@@ -105,7 +109,7 @@ removed from the resulting output.
 
 ## Expression Output
 
-To output a literal, variable or any kind of expression, use the opening `{{`
+To output a literal, variable, or any kind of expression, use the opening `{{`
 and the closing `}}` tags:
 
     Hello, {{ username }}
@@ -147,8 +151,9 @@ concatenation instead:
 
     {{ true }} or {{ false }}
 
-When printed, `true` will be converted to `1` while `false` will be converted to
-an empty string.
+When printed or concatenated, `true` will be converted to `1` while `false` will
+be converted to an empty string. This behavior is consistent with the way PHP
+treats booleans in a string context.
 
 ### Arrays
 
@@ -170,10 +175,14 @@ When printed, `null` will be converted to an empty string.
 
 ## Operators
 
-In addtition to short-circuiting, boolean operators `or` and `and` returns one
+In addition to short-circuiting, boolean operators `or` and `and` returns one
 of their operands. This means you can, for example, do the following:
 
     Status: {{ user.status or "default value" }}
+
+Note that the strings `'0'` and `''` are considered to be false. See the section
+on branching for more information. This behavior is consistent with the way PHP
+treats strings in a boolean context.
 
 Furthermore, comparison operators can take multiple operands:
 
@@ -197,11 +206,14 @@ The `in` operator works with arrays, iterators and plain objects:
     1 is definitely not in 4,5,6
     {% endif %}
 
+For iterators and plain objects, the `in` operator first converts them using a
+simple `(array)` type conversion.
+
 Use `..` (a double dot) to concatenate between two or more scalars as strings:
 
     {{ "Hello," .. " World!" }}
 
-String concatenation has a lower precedence than arithmatic operators:
+String concatenation has a lower precedence than arithmetic operators:
 
     {{ "1 + 1 = " .. 1 + 1 .. " and everything is OK again!" }}
 
@@ -213,16 +225,18 @@ String output and concatenation coerce scalar values into strings.
 
 ### Operator precedence
 
-Below is a list of all operators in Flow sorted according to their precedence in
-descending order:
+Below is a list of all operators in Flow sorted and listed according to their
+precedence in descending order:
 
 - Attribute access: `.` and `[]` for objects and arrays
 - Filter chaining: `|`
-- Arithmatic: unary `-` and `+`, `%`, `/`, `*`, `-`, `+`
+- Arithmetic: unary `-` and `+`, `%`, `/`, `*`, `-`, `+`
 - Concatenation: `..`
 - Comparison: `!==`, `===`, `==`, `!=`, `<>`, `<`, `>`, `>=`, `<=`
 - Conditional: `in`, `not`, `and`, `or`, `xor`
 - Ternary: `? :`
+
+You can group subexpressions in parentheses to override the precedence rules.
 
 ## Attribute access
 
@@ -294,7 +308,7 @@ There are two ways you can use them:
 - Using helpers as functions
 - Using helpers as filters
 
-Except for a few exception, they are exchangable.
+Except for a few exceptions, they are exchangeable.
 
 ### Using helpers as functions
 
@@ -377,8 +391,8 @@ Use your custom helpers just like any other built-in helpers:
     A random number: {{ random() }} is truly {{ "bizarre" | exclamation }}
 
 As a rule, when used as a filter, the input is passed on as the first argument
-to the helper. It's advisable to have a default value for every argument in your
-custom helper.
+to the helper. It's advisable to have a default value for every parameter in
+your custom helper.
 
 Since built-in helpers and custom helpers share the same namespace, you can
 override built-in helpers with your own version although it's not recommended.
@@ -542,7 +556,7 @@ templates:
 
     {% extends "path/to/layout.html" %}
 
-The emplate extension mechanism is fully dynamic; you can use variables or wrap
+The template extension mechanism is fully dynamic; you can use variables or wrap
 it in conditionals just like any other statement:
 
     {% extends layout if some_condition %}
@@ -714,6 +728,13 @@ already escaped will _not_ be autoescaped; this special case is why `escape` and
 You can turn autoescape off any time by simply setting it to off:
 
     {% autoescape off %}
+
+You can isolate the effects of autoescape, whether it's on or off, by enclosing
+it with a corresponding `endautoescape` tag:
+
+    {% autoescape off %}
+    This section is specifically autoescaped: {{ "<b>bold</b>" }}
+    {% endautoescape %}
 
 By default, autoescape is initially set to off.
 
