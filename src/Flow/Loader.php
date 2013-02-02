@@ -93,6 +93,59 @@ class Loader
         return implode('/', $parts);
     }
 
+    public function compile($template, $mode = null)
+    {
+        $source = $this->resolvePath($template);
+
+        $name  = substr($source, strlen($this->options['source']) + 1);
+        $class = self::CLASS_PREFIX . md5($name);
+
+        // $source refers to file outside source directory
+        if (strpos(dirname($source), $this->options['source']) !== 0) {
+            throw new \RuntimeException(sprintf(
+                'the path %s is outside the source directory',
+                $template
+            ));
+        }
+
+        // $source is not a readable file
+        if (!is_readable($source)) {
+            throw new \RuntimeException(sprintf(
+                '%s is not a readable file',
+                $template
+            ));
+        }
+
+        $target = $this->options['target'] . '/' . $class . '.php';
+
+        if (!isset($mode)) {
+            $mode = $this->options['mode'];
+        }
+
+        switch ($mode) {
+        case self::RECOMPILE_ALWAYS:
+            $compile = true;
+            break;
+        case self::RECOMPILE_NEVER:
+            $compile = !file_exists($target);
+            break;
+        case self::RECOMPILE_NORMAL:
+        default:
+            $compile = !file_exists($target) ||
+                filemtime($target) < filemtime($source);
+            break;
+        }
+
+        if ($compile) {
+            $lexer    = new Lexer($name, file_get_contents($source));
+            $parser   = new Parser($lexer->tokenize());
+            $compiler = new Compiler($parser->parse());
+            $compiler->compile($target);
+        }
+
+        return $this;
+    }
+
     public function load($template, $from = null)
     {
         if ($template instanceof Template) {

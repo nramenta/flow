@@ -89,6 +89,26 @@ if (!$flow->isValid($file, $error)) {
 The above example will check the template for errors without actually compiling
 it.
 
+## Compiling Programatically
+
+It is possible to compile templates without loading them:
+
+```php
+<?php
+require 'path/to/src/Flow/Loader.php';
+use Flow\Loader;
+Loader::autoload();
+$flow = new Loader(array(
+    'source' => 'path/to/templates',
+    'target' => 'path/to/cache',
+));
+
+$flow->compile('some_template.html');
+```
+
+This is useful if your application needs to bulk-compile several templates or
+allows users to upload, create, or modify templates.
+
 ## Basic Concepts
 
 Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly
