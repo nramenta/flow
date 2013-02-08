@@ -5,9 +5,10 @@
 Flow began life as a major fork of the original Twig templating engine by Armin
 Ronacher, which he made for [Chyrp], a blogging engine. Flow features template
 inheritance, includes, macros, custom helpers, autoescaping, whitespace control
-and many little features that makes writing templates enjoyable. Flow compiles
-each template into its own PHP class; used with APC, this makes Flow a very fast
-and efficient templating engine.
+and many little features that makes writing templates enjoyable. Flow tries to
+give a consistent and coherent experience in writing clean templates. Flow
+compiles each template into its own PHP class; used with APC, this makes Flow a
+very fast and efficient templating engine.
 
 ## Installation
 
@@ -22,7 +23,7 @@ configuration is:
 }
 ```
 
-Flow requires PHP 5.3 or newer.
+Flow requires PHP 5.3 or newer. PHP 5.4 is strongly recommended.
 
 ## Usage
 
@@ -38,11 +39,16 @@ $flow = new Loader(array(
     'target' => 'path/to/cache',
 ));
 
-$template = $flow->load('home.html');
-$template->display(array(
-    'data_1' => 'My first data',
-    'data_2' => 'My second data',
-));
+try {
+    $template = $flow->load('home.html');
+    $template->display(array(
+        'data_1' => 'My first data',
+        'data_2' => 'My second data',
+    ));
+} catch (\Exception $e) {
+    // something went wrong!
+    die($e->getMessage());
+}
 ```
 
 The `Loader` constructor accepts an array of options. They are:
@@ -63,6 +69,14 @@ The default mode is `Loader::RECOMPILE_NORMAL`. If a template has never been
 compiled, or the compiled PHP file is missing, the `Loader` will compile it once
 regardless of what the current mode is.
 
+In a typical development environment, the `Loader::RECOMPILE_NORMAL` mode should
+be used, while the `Loader::RECOMPILE_NEVER` mode should be used for production
+whenever possible. The `Loader::RECOMPILE_ALWAYS` mode is used only for internal
+debugging purposes by the developers and should generally be avoided.
+
+Two kinds of exceptions are thrown by Flow: `SyntaxError` for syntax errors, and
+`RuntimeException` for everything else.
+
 Any reference to template files outside the `source` directory is considered to
 be an error.
 
@@ -81,6 +95,7 @@ $flow = new Loader(array(
 ));
 
 $file = 'my_template.html';
+
 if (!$flow->isValid($file, $error)) {
     echo 'The template ' . $file . ' is not valid: ' . $error;
 }
@@ -91,7 +106,7 @@ it.
 
 ## Compiling Programatically
 
-It is possible to compile templates without loading them:
+It is possible to compile templates without loading and displaying them:
 
 ```php
 <?php
@@ -103,7 +118,12 @@ $flow = new Loader(array(
     'target' => 'path/to/cache',
 ));
 
-$flow->compile('some_template.html');
+try {
+    $flow->compile('some_template.html');
+} catch (\Exception $e) {
+    // something went wrong!
+    die($e->getMessage());
+}
 ```
 
 This is useful if your application needs to bulk-compile several templates or
@@ -141,7 +161,7 @@ and the closing `}}` tags:
 ## Literals
 
 There are several types of literals: numbers, strings, booleans, arrays, and
-nulls.
+`null`.
 
 ### Numbers
 
@@ -183,7 +203,7 @@ Arrays are also hash tables just like in PHP:
 
     {{ ["foo" => "bar", 'oof' => 'rab']['foo'] }}
 
-Printing arrays will cause a PHP notice to be thrown. Use the `join` helper:
+Printing arrays will cause a PHP notice to be thrown; use the `join` helper:
 
     {{ [1,2,3] | join(', ') }}
 
@@ -191,7 +211,8 @@ Printing arrays will cause a PHP notice to be thrown. Use the `join` helper:
 
     {{ null }}
 
-When printed, `null` will be converted to an empty string.
+When printed or concatenated, `null` will be converted to an empty string. This
+behavior is consistent with the way PHP treats nulls in a string context.
 
 ## Operators
 
@@ -204,7 +225,7 @@ Note that the strings `'0'` and `''` are considered to be false. See the section
 on branching for more information. This behavior is consistent with the way PHP
 treats strings in a boolean context.
 
-Furthermore, comparison operators can take multiple operands:
+Comparison operators can take multiple operands:
 
     {% if 1 <= x <= 10 %}
     <p>x is between 1 and 10 inclusive.</p>
@@ -256,7 +277,7 @@ precedence in descending order:
 - Conditional: `in`, `not`, `and`, `or`, `xor`
 - Ternary: `? :`
 
-You can group subexpressions in parentheses to override the precedence rules.
+You can group subexpressions in parentheses to override the precedence rule.
 
 ## Attribute access
 
@@ -291,9 +312,10 @@ and `]` operator:
 
 The `.` operator is more restrictive: only tokens of name type can be used as
 the attribute. Tokens of name type begins with an alphabet or an underscore and
-can only contain alphanumeric and underscore characters.
+can only contain alphanumeric and underscore characters, just like PHP variables
+and function names.
 
-One special attribute access rules for arrays is the ability to invoke closure
+One special attribute access rule for arrays is the ability to invoke closure
 functions stored in arrays:
 
 ```php
@@ -315,7 +337,7 @@ And call the `fullname` "method" in the template as follows:
     {{ user.fullname }}
 
 When invoked this way, the closure function will implicitly be passed the array
-it is in as the first argument. Extra arguments will be passed on to the closure
+it's in as the first argument. Extra arguments will be passed on to the closure
 function as the second and consecutive arguments. This rule lets you have arrays
 that behave not unlike objects: they can access other member values or functions
 in the array.
@@ -334,7 +356,7 @@ Except for a few exceptions, they are exchangeable.
 
     {{ upper(title) }}
 
-You can chain helpers just like you would chain function calls in PHP:
+You can chain helpers just like you can chain function calls in PHP:
 
     {{ nl2br(upper(trim(my_data))) }}
 
@@ -364,19 +386,31 @@ When using helpers as filters, be careful when mixing operators:
 
     {{ 12_000 + 5_000 | number_format }}
 
-Due to operator precedence, the above example will be considered as:
+Due to operator precedence, the above example is semantically equivalent to:
 
     {{ 12_000 + (5_000 | number_format) }}
 
-Which, when compiled to PHP, will yield 12005 which is probably not what you'd
-expect. In this example, either put the addition inside parenthesis or use the
-helper as a function.
+Which, when compiled to PHP, will output 12005 which is probably not what you'd
+expect. Either put the addition inside parentheses like so:
+
+    {{ (12_000 + 5_000) | number_format }}
+
+Or use the helper as a function:
+
+    {{ number_format(12_000 + 5_000) }}
 
 ### Special `raw` helper
 
 The `raw` helper can only be applied as a filter. Its sole purpose is to mark an
-expression as a raw string and should not be escaped even when autoescaping is
-turned on.
+expression as a raw string that will not be escaped even when autoescaping is
+turned on:
+
+    {% autoescape on %}
+    {{ "<p>this is a valid HTML paragraph</p>" | raw }}
+
+Without the `raw` filter being applied, the above will yield
+
+    &lt;p&gt;this is a valid HTML paragraph&lt;/p&gt;
 
 ### List of all available built-in helpers:
 
@@ -396,17 +430,24 @@ $helpers = array(
     'random' => function() { return 4; },
     'exclamation' => function($s = null) { return $s . '!'; },
 );
+
 $flow = new Loader(array(
     'source'  => 'templates',
     'target'  => 'cache',
     'reload'  => true,
     'helpers' => $helpers,
 ));
-$template = $flow->load('my_template.html');
-$template->display();
+
+try {
+    $template = $flow->load('my_template.html');
+    $template->display();
+} catch (\Exception $e) {
+    // something went wrong!
+    die($e->getMessage());
+}
 ```
 
-Use your custom helpers just like any other built-in helpers:
+You can use your custom helpers just like any other built-in helpers:
 
     A random number: {{ random() }} is truly {{ "bizarre" | exclamation }}
 
@@ -415,7 +456,8 @@ to the helper. It's advisable to have a default value for every parameter in
 your custom helper.
 
 Since built-in helpers and custom helpers share the same namespace, you can
-override built-in helpers with your own version although it's not recommended.
+override built-in helpers with your own version although it's generally not
+recommended.
 
 ## Branching
 
@@ -433,7 +475,12 @@ multiple branches:
     {% endif %}
 
 Values considered to be false are `false`, `null`, `0`, `'0'`, `''`, and `[]`
-(empty array).
+(empty array). This behavior is consistent with the way PHP treats data types in
+a boolean context. From experience, it's generally useful to have the string
+`'0'` be considered a false value: many times, the data comes from a relational
+database which, in most drivers in PHP, integer flags in returned tuples are
+converted to either `'1'` or `'0'`. You can always use the strict `===` and
+`!==` comparison operators.
 
 ### Inline if and unless statement modifiers
 
@@ -460,8 +507,7 @@ The following is equivalent to the above:
 
 ### Ternary operator `?:`
 
-You can use the ternary conditional operator if you need branching inside an
-expression:
+You can use the ternary operator if you need branching inside an expression:
 
     {{ error ? '<p>' .. error .. '</p>' :  '<p>success!</p>' }}
 
@@ -469,8 +515,8 @@ The ternary operator has the lowest precedence in an expression.
 
 ## Iteration
 
-Use `for` tags to iterate through each element of an array or iterator.
-Use the optional `else` clause to implicitly branch if no iteration occurs:
+Use the `for` tag to iterate through each element of an array or iterator. Use
+the optional `else` clause to implicitly branch if no iteration occurs:
 
     {% for link in links %}
         <a href="{{ link.url }}">{{ link.title }}</a> {% else %}
@@ -484,19 +530,23 @@ to the `else` clause.
 You can also iterate as key and value pairs by using a comma:
 
     {% for key, value in associative_array %}
-        <p>{{ key .. " = " .. value }}</p>
+        <p>{{ key }} = {{ value }}</p>
     {% endfor %}
 
 Both `key` and `value` in the example above are local to the iteration. They
 will retain their previous values, if any, once the iteration stops.
 
-The reserved variable `loop` is available:
+The special variable `loop` contains several useful attributes and is available
+for use inside the `for` block:
 
     {% for user in users %}
         {{ user }}{{ ", " unless loop.last }}
     {% endfor %}
 
-The reserved `loop` variable has a few attributes:
+If you have an ordinary `loop` variable, its value will temporarily be out of
+scope inside the `for` block.
+
+The special `loop` variable has a few attributes:
 
 - `loop.index`: The zero-based index.
 - `loop.count`: The one-based index.
@@ -507,10 +557,10 @@ The reserved `loop` variable has a few attributes:
 ### break and continue
 
 You can use `break` and `continue` to break out of a loop and to skip to the
-next iteration, respectively:
+next iteration, respectively. The following will print "1 2 3":
 
-    {# the following will print "1 2 3" #}
-    {% for i in [1,2,3,4,5] %}
+    {% for i in [0,1,2,3,4,5] %}
+        {% continue if i < 1 %}
         {{ i }}
         {% break if i > 2 %}
     {% endfor %}
@@ -524,11 +574,11 @@ It is sometimes unavoidable to set values to variables; use the `set` construct:
 You can also use `set` as a way to buffer output and store the result in a
 variable:
 
-    {% set partial %}
+    {% set slogan %}
     <p>This changes everything!</p>
     {% endset %}
     ...
-    {{ partial }}
+    {{ slogan }}
     ...
 
 The scope of variables introduced by the `set` construct is always local to its
@@ -581,6 +631,10 @@ it in conditionals just like any other statement:
 
     {% extends layout if some_condition %}
 
+You can also use the ternary operator:
+
+    {% extends some_condition ? custom_layout : "default_layout.html" %}
+
 It is a syntax error to declare more than one `extends` tag per template or to
 declare an `extends` tag anywhere but at the top level scope.
 
@@ -608,39 +662,42 @@ To call them:
 
     {{ @bolder("this is great!") }}
 
-All parameters are optional; they default to `null` while extra positional
-parameters are ignored. Flow lets you define a custom default value for each
-parameter:
+Macro calls are prepended with the `@` character. This is done to avoid name
+collisions with helpers, method calls and attribute access. 
 
-    {% macro bolder(text = "this is a bold text!") %}
+All parameters are optional; they default to `null` while extra positional
+arguments passed are ignored. Flow lets you define a custom default value for
+each parameter:
+
+    {% macro bolder(text="this is a bold text!") %}
     <b>{{ text }}</b>
     {% endmacro %}
 
-You can also use named parameters:
+You can also use named arguments:
 
     {{ @bolder(text="this is a text") }}
 
-Extra named parameters overwrite positional parameters with the same name and
-previous named parameters with the same name. The parentheses are optional only
-if there are no arguments passed. All macro calls are prepended with the `@`
-character. This is to avoid name collisions with helpers, method calls and
-attribute access. Parameters and variables declared inside macros with the `set`
-construct are local to the macro and will cease to exist once the macro returns.
-Declaring macros inside blocks or other macros is a syntax error. The output of
-macros are by default unescaped, regardless of what the current `autoescape`
-setting is. To escape the output, you must explicitly apply the `escape` or `e`
-filter.
+Extra named arguments overwrite positional arguments with the same name and
+previous named arguments with the same name. The parentheses are optional only
+if there are no arguments passed. Parameters and variables declared inside
+macros with the `set` construct are local to the macro and will cease to exist
+once the macro returns.
+
+The output of macros are by default unescaped, regardless of what the current
+`autoescape` setting is. To escape the output, you must explicitly apply the
+`escape` or `e` filter.
+
+Declaring macros inside blocks or other macros is a syntax error.
 
 ### Importing macros
 
-You generally would want to group macros in templates like you would functions
-in modules or classes. To use macros defined in another template, simply import
-them:
+It's best to group macros in templates like you would functions in modules or
+classes. To use macros defined in another template, simply import them:
 
     {% import "path/to/form_macros.html" as form %}
 
-All imported macros must be aliased by using the `as` keyword. To call an
-imported macro, simply prepend the macro name with the alias followed by a dot:
+All imported macros must be aliased using the `as` keyword. To call an imported
+macro, simply prepend the macro name with the alias followed by a dot:
 
     {{ @form.text_input }}
 
@@ -649,23 +706,14 @@ imported macro, simply prepend the macro name with the alias followed by a dot:
 You can decorate macros by importing them first:
 
     {# this is in "macro_A.html" #}
-    ...
     {% macro emphasize(text) %}<b>{{ text }}</b>{% endmacro %}
-    ...
-
 
     {# this is in "macro_B.html" #}
-    ...
     {% import "macro_A.html" as A %}
-    ...
     {% macro emphasize(text) %}<i>{{ @A.emphasize(text) }}</i>{% endmacro %}
-    ...
-
 
     {# this is in "template_C.html" #}
-    ...
     {% import "macro_B.html" as B %}
-    ...
     Emphasized text: {{ @B.emphasize("this is pretty cool!") }}
 
 The above when rendered will yield:
@@ -685,14 +733,14 @@ This is useful for things like headers, sidebars and footers. Including
 non-existing or non-readable templates is a runtime error. Note that there are
 no mechanisms to prevent circular inclusion of templates, although there is a
 PHP runtime limit on recursion: either the allowed memory allocation size is
-reached, thereby producing a runtime fatal error, or the number of maximum
+reached, thereby producing a fatal runtime error, or the number of maximum
 nesting level is reached, if you're using xdebug.
 
 ## Path Resolution
 
 Paths referenced in `extends`, `include`, and `import` tags can either be
-absolute from the specified `source` option when instantiating the loader object
-or relative to the current template's directory.
+absolute from the specified `source` option when instantiating the loader
+object, or relative to the current template's directory.
 
 ### Absolute Paths
 
@@ -706,7 +754,7 @@ regardless of what the current template's directory is.
 
 ### Relative Paths
 
-Relative paths must *not* be prefixed by a `/` character:
+Relative paths must **not** be prefixed by a `/` character:
 
     {% include "far.html" %}
 
@@ -716,15 +764,13 @@ will try to include the template `/var/www/templates/boo/far.html`.
 
 ### Path Injection Prevention
 
-Flow throws an error if you try to load any file that is outside the `source`
-directory.
+Flow throws a `RuntimeException` if you try to load any file that is outside the
+`source` directory.
 
 ## Output Escaping
 
 You can escape data to be printed out by using the `escape` or its alias `e`
-filter. Output escaping will only be applied once, no matter ho many times
-you specify it in the filter chain. The `escape` and `e` helpers are only valid
-if used as a filter.
+filter. Output escaping assumes HTML output.
 
 ### Using Autoescape
 
@@ -739,13 +785,13 @@ the top of your template. Autoescape works on a per template basis; it is never
 inherited, included, or imported from other templates.
 
 You do not need to worry if you accidentally double escape a variable. All data
-already escaped will _not_ be autoescaped; this special case is why `escape` and
-`e` can only be used as a filter and not a function:
+already escaped will **not** be autoescaped; note that this is only applicable
+when `escape` or its alias `e` is used as a filter and not a function:
 
     {% autoescape on %}
     {{ "Dr. Jekyll & Mr. Hyde" | escape }}
 
-You can turn autoescape off any time by simply setting it to off:
+You can turn autoescape off at any time by simply setting it to off:
 
     {% autoescape off %}
 
@@ -760,10 +806,9 @@ By default, autoescape is initially set to off.
 
 ### Raw Filter
 
-By using the `raw` filter on a variable output, the data will *not* be escaped
-regardless of any `escape` filters or the current autoescape status. Note that
-just like `escape`, you must use it as a filter, using `raw` as a function call
-will do nothing and will yield `null`.
+By using the `raw` filter on a variable output, the data will **not** be escaped
+regardless of any `escape` filters or the current autoescape status. You must
+use it as a filter; the `raw` helper is not available as a function.
 
 ## Controlling Whitespace
 
