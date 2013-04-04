@@ -1015,16 +1015,16 @@ class MacroNode extends Node
         );
         $compiler->raw("{\n", $indent);
 
-        $compiler->raw('$context = array(' . "\n", $indent + 1);
+        $compiler->raw('$context = $_context + array(' . "\n", $indent + 1);
         $i = 0;
         foreach ($this->args as $key => $val) {
             $compiler->raw(
-                "'$key' => isset(\$_context['$key']) ? \$_context['$key'] : ",
+                "'$key' => !isset(\$_context['$key']) &&" .
+                " isset(\$_context[$i]) ? \$_context[$i] : ",
                 $indent + 2
             );
-            $compiler->raw("(isset(\$_context[$i]) ? \$_context[$i] : ");
             $val->compile($compiler);
-            $compiler->raw("),\n");
+            $compiler->raw(",\n");
             $i += 1;
         }
         $compiler->raw(");\n", $indent + 1);
