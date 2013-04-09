@@ -798,7 +798,7 @@ You can turn autoescape off at any time by simply setting it to off:
 You can isolate the effects of autoescape, whether it's on or off, by enclosing
 it with a corresponding `endautoescape` tag:
 
-    {% autoescape off %}
+    {% autoescape on %}
     This section is specifically autoescaped: {{ "<b>bold</b>" }}
     {% endautoescape %}
 
