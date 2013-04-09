@@ -451,9 +451,10 @@ You can use your custom helpers just like any other built-in helpers:
 
     A random number: {{ random() }} is truly {{ "bizarre" | exclamation }}
 
-As a rule, when used as a filter, the input is passed on as the first argument
-to the helper. It's advisable to have a default value for every parameter in
-your custom helper.
+When used as functions, the parentheses are necessary even if your helpers do
+not take any parameters. As a rule, when used as a filter, the input is passed
+on as the first argument to the helper. It's advisable to have a default value
+for every parameter in your custom helper.
 
 Since built-in helpers and custom helpers share the same namespace, you can
 override built-in helpers with your own version although it's generally not
