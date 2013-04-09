@@ -859,10 +859,10 @@ Will yield the rather sparse
 The semantics are as follows:
 
 - `{%-`, `{{-`, and `{#-` delimiters will remove all whitespace to their left
-  **up to but not including** the first newline.
+  **up to but not including** the first newline it encounters.
 
 - `-%}`, `-}}`, and `-#}` delimiters will remove all whitespace to their right
-  **up to and including** the first newline.
+  **up to and including** the first newline it encounters.
 
 ## Raw Output
 
