@@ -686,7 +686,8 @@ once the macro returns.
 
 The output of macros are by default unescaped, regardless of what the current
 `autoescape` setting is. To escape the output, you must explicitly apply the
-`escape` or `e` filter.
+`escape` or `e` filter. Inside the macros themselves, autoescape works as usual
+and depends on the current autoescape settings.
 
 Declaring macros inside blocks or other macros is a syntax error.
 
