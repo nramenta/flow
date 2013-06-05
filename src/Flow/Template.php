@@ -189,6 +189,7 @@ abstract class Template
                 if ($obj[$attr] instanceof \Closure) {
                     $callable = $obj[$attr];
                     array_unshift($args, $obj);
+                    return call_user_func_array($callable, $args);
                 } else {
                     return $obj[$attr];
                 }
@@ -198,6 +199,7 @@ abstract class Template
         } elseif (is_object($obj)) {
             if (is_callable(array($obj, $attr))) {
                 $callable = array($obj, $attr);
+                return call_user_func_array($callable, $args);
             } else {
                 return @$obj->$attr;
             }
