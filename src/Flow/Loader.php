@@ -80,7 +80,6 @@ class Loader
 
         $path = preg_replace('#/{2,}#', '/', strtr($path, '\\', '/'));
 
-        $up = 0;
         $parts = array();
         foreach (explode('/', $path) as $part) {
             if ($part === '..') {
