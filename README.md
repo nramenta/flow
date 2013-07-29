@@ -57,10 +57,10 @@ The `Loader` constructor accepts an array of options. They are:
 - `source`: Directory to template source files.
 - `target`: Directory to compiled PHP files.
 - `mode`: Recompilation mode.
-- `mkdir`: Mode to pass to `mkdir` when the target directory doesn't exist. Use
-  `false` to suppress automatic target directory creation. Defaults to 0777.
-- `adapter`: Optional adapter object. See the section on loading templates from
-  other sources near the bottom of this document.
+- `mkdir`: Mode to pass to `mkdir()` when the target directory doesn't exist.
+  Use `false` to suppress automatic target directory creation. Defaults to 0777.
+- `adapter`: Optional `Flow\Adapter` object. See the section on loading
+  templates from other sources near the bottom of this document.
 - `helpers` : Array of custom helpers.
 
 The `source` and `target` options are required.
