@@ -57,6 +57,8 @@ The `Loader` constructor accepts an array of options. They are:
 - `source`: Directory to template source files or a `Source` object.
 - `target`: Directory to compiled PHP files.
 - `mode`: Recompilation mode.
+- `adapter`: Optional adapter object. See the section on loading templates from
+  other sources near the bottom of this document.
 - `helpers` : Array of custom helpers.
 
 The `mode` option can be one of the following:
@@ -81,67 +83,7 @@ Two kinds of exceptions are thrown by Flow: `SyntaxError` for syntax errors, and
 Any reference to template files outside the `source` directory is considered to
 be an error.
 
-## Loading templates from other sources
-
-Sometimes you need to load templates from a database or even string arrays. This
-is possible in Flow by simply passing an object of a class that implements the
-`Flow\Adapter` interface to the `adapter` option of the `Loader` constructor.
-
-The `Flow\Adapter` interface declares three methods:
-
-- `isReadable($path)`: Determines whether the path is readable or not.
-- `lastModified($path)`: Returns the last modified time of the path.
-- `getContents($path)`: Returns the contents of the given path.
-
-Below is an example of implementing a Flow adapter to string arrays:
-
-```php
-<?php
-require 'path/to/src/Flow/Loader.php';
-
-use Flow\Loader;
-use Flow\Adapter;
-
-class ArrayAdapter implements Adapter
-{
-    static $templates = array(
-        'first.html' => 'First! {% include "second.html" %}',
-        'second.html' => 'Second!',
-    );
-
-    public function isReadable($path)
-    {
-        return isset(self::$templates[$path]);
-    }
-
-    public function lastModified($path)
-    {
-        return filemtime(__FILE__);
-    }
-
-    public function getContents($path)
-    {
-        return self::$templates[$path];
-    }
-}
-
-Loader::autoload();
-$flow = new Loader(array(
-    'source'  => __DIR__ . '/templates',
-    'target'  => __DIR__ . '/cache',
-    'mode'    => Loader::RECOMPILE_ALWAYS,
-    'adapter' => new ArrayAdapter,
-));
-$flow->load('first.html')->display();
-```
-
-The above will compile the templates and render the following:
-
-```
-First! Second!
-```
-
-## Syntax Checking
+## Syntax checking
 
 Syntax checking can be done as following:
 
@@ -165,7 +107,7 @@ if (!$flow->isValid($file, $error)) {
 The above example will check the template for errors without actually compiling
 it.
 
-## Compiling Programatically
+## Compiling programatically
 
 It is possible to compile templates without loading and displaying them:
 
@@ -190,7 +132,7 @@ try {
 This is useful if your application needs to bulk-compile several templates or
 allows users to upload, create, or modify templates.
 
-## Basic Concepts
+## Basic concepts
 
 Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly
 for block declarations in template inheritance and control structures. Examples
@@ -208,7 +150,7 @@ Use `{#` and `#}` to delimit comments:
 Comments may span multiple lines but cannot be nested; they will be completely
 removed from the resulting output.
 
-## Expression Output
+## Expression output
 
 To output a literal, variable, or any kind of expression, use the opening `{{`
 and the closing `}}` tags:
@@ -473,7 +415,7 @@ Without the `raw` filter being applied, the above will yield
 
     &lt;p&gt;this is a valid HTML paragraph&lt;/p&gt;
 
-### List of all available built-in helpers:
+### Built-in helpers
 
 `abs`, `bytes`, `capitalize`, `cycle`, `date`, `dump`, `e`, `escape`, `first`,
 `format`, `is_divisible_by`, `is_empty`, `is_even`, `is_odd`, `join`,
@@ -616,7 +558,7 @@ The special `loop` variable has a few attributes:
 - `loop.last`: Evaluates to `true` if the current iteration is the last.
 - `loop.parent`: The parent iteration `loop` object if applicable.
 
-### break and continue
+### Break and continue
 
 You can use `break` and `continue` to break out of a loop and to skip to the
 next iteration, respectively. The following will print "1 2 3":
@@ -799,13 +741,13 @@ PHP runtime limit on recursion: either the allowed memory allocation size is
 reached, thereby producing a fatal runtime error, or the number of maximum
 nesting level is reached, if you're using xdebug.
 
-## Path Resolution
+## Path resolution
 
 Paths referenced in `extends`, `include`, and `import` tags can either be
 absolute from the specified `source` option when instantiating the loader
 object, or relative to the current template's directory.
 
-### Absolute Paths
+### Absolute paths
 
 Absolute paths must be prefixed by a `/` character like so:
 
@@ -815,7 +757,7 @@ In the example above, if the `source` directory is `/var/www/templates`, then
 the tag will try to include the template `/var/www/templates/foo/bar.html`
 regardless of what the current template's directory is.
 
-### Relative Paths
+### Relative paths
 
 Relative paths must **not** be prefixed by a `/` character:
 
@@ -825,17 +767,81 @@ In this example, if the `source` directory is `/var/www/templates`, and the
 current template's directory is `boo`, relative to the `source`, then the tag
 will try to include the template `/var/www/templates/boo/far.html`.
 
-### Path Injection Prevention
+### Path injection prevention
 
 Flow throws a `RuntimeException` if you try to load any file that is outside the
 `source` directory.
 
-## Output Escaping
+## Loading templates from other sources
+
+Sometimes you need to load templates from a database or even string arrays. This
+is possible in Flow by simply passing an object of a class that implements the
+`Flow\Adapter` interface to the `adapter` option of the `Loader` constructor.
+
+The `Flow\Adapter` interface declares three methods:
+
+- `isReadable($path)`: Determines whether the path is readable or not.
+- `lastModified($path)`: Returns the last modified time of the path.
+- `getContents($path)`: Returns the contents of the given path.
+
+The `source` option given in the `Loader` constructor still determines if a
+template is valid; i.e., whether the template can logically be found in the
+source directory.
+
+Below is an example of implementing a Flow adapter to string arrays:
+
+```php
+<?php
+require 'path/to/src/Flow/Loader.php';
+
+use Flow\Loader;
+use Flow\Adapter;
+
+class ArrayAdapter implements Adapter
+{
+    static $templates = array(
+        'first.html' => 'First! {% include "second.html" %}',
+        'second.html' => 'Second!',
+    );
+
+    public function isReadable($path)
+    {
+        return isset(self::$templates[$path]);
+    }
+
+    public function lastModified($path)
+    {
+        return filemtime(__FILE__);
+    }
+
+    public function getContents($path)
+    {
+        return self::$templates[$path];
+    }
+}
+
+Loader::autoload();
+$flow = new Loader(array(
+    'source'  => __DIR__ . '/templates',
+    'target'  => __DIR__ . '/cache',
+    'mode'    => Loader::RECOMPILE_ALWAYS,
+    'adapter' => new ArrayAdapter,
+));
+$flow->load('first.html')->display();
+```
+
+The above will compile the templates and render the following:
+
+```
+First! Second!
+```
+
+## Output escaping
 
 You can escape data to be printed out by using the `escape` or its alias `e`
 filter. Output escaping assumes HTML output.
 
-### Using Autoescape
+### Using autoescape
 
 Use the auto escape facility if you want all expression output to be escaped
 before printing, minimizing potential XSS attacks:
@@ -867,13 +873,13 @@ it with a corresponding `endautoescape` tag:
 
 By default, autoescape is initially set to off.
 
-### Raw Filter
+### Raw filter
 
 By using the `raw` filter on a variable output, the data will **not** be escaped
 regardless of any `escape` filters or the current autoescape status. You must
 use it as a filter; the `raw` helper is not available as a function.
 
-## Controlling Whitespace
+## Controlling whitespace
 
 When you're writing a template for a certain file format that is sensitive
 to whitespace, you can use `{%-` and `-%}` in place of the normal opening and
@@ -927,7 +933,7 @@ The semantics are as follows:
 - `-%}`, `-}}`, and `-#}` delimiters will remove all whitespace to their right
   **up to and including** the first newline it encounters.
 
-## Raw Output
+## Raw output
 
 Sometimes you need to output raw blocks of text, as in the case of code. You
 can use the raw tag:
