@@ -63,6 +63,8 @@ The `Loader` constructor accepts an array of options. They are:
   other sources near the bottom of this document.
 - `helpers` : Array of custom helpers.
 
+The `source` and `target` options are required.
+
 The `mode` option can be one of the following:
 
 - `Loader::RECOMPILE_NEVER`: Never recompile an already compiled template.

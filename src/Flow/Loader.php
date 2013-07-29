@@ -35,9 +35,15 @@ class Loader
 
     public function __construct($options)
     {
+        if (!isset($options['source'])) {
+            throw new \RuntimeException('missing source directory');
+        }
+
+        if (!isset($options['target'])) {
+            throw new \RuntimeException('missing target directory');
+        }
+
         $options += array(
-            'source'  => '',
-            'target'  => '',
             'mode'    => self::RECOMPILE_NORMAL,
             'helpers' => array(),
         );
