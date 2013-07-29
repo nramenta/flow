@@ -47,10 +47,18 @@ class Loader
         }
 
         if (!($target = realpath($options['target'])) || !is_dir($target)) {
-            throw new \RuntimeException(sprintf(
-                'target directory %s not found',
-                $options['target']
-            ));
+            if ($options['mkdir'] === false) {
+                throw new \RuntimeException(sprintf(
+                    'target directory %s not found',
+                    $options['target']
+                ));
+            }
+            if (!mkdir($options['target'], $options['mkdir'], true)) {
+                throw new \RuntimeException(sprintf(
+                    'unable to create target directory %s',
+                    $options['target']
+                ));
+            }
         }
 
         $this->options = array(
