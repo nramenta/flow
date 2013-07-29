@@ -8,7 +8,8 @@ inheritance, includes, macros, custom helpers, autoescaping, whitespace control
 and many little features that makes writing templates enjoyable. Flow tries to
 give a consistent and coherent experience in writing clean templates. Flow
 compiles each template into its own PHP class; used with APC, this makes Flow a
-very fast and efficient templating engine.
+very fast and efficient templating engine. Templates can be read from files,
+loaded from string arrays, or even from databases with relative ease.
 
 ## Installation
 
@@ -53,7 +54,7 @@ try {
 
 The `Loader` constructor accepts an array of options. They are:
 
-- `source`: Directory to template source files.
+- `source`: Directory to template source files or a `Source` object.
 - `target`: Directory to compiled PHP files.
 - `mode`: Recompilation mode.
 - `helpers` : Array of custom helpers.
@@ -79,6 +80,66 @@ Two kinds of exceptions are thrown by Flow: `SyntaxError` for syntax errors, and
 
 Any reference to template files outside the `source` directory is considered to
 be an error.
+
+## Loading templates from other sources
+
+Sometimes you need to load templates from a database or even string arrays. This
+is possible in Flow by simply passing an object of a class that implements the
+`Flow\Adapter` interface to the `adapter` option of the `Loader` constructor.
+
+The `Flow\Adapter` interface declares three methods:
+
+- `isReadable($path)`: Determines whether the path is readable or not.
+- `lastModified($path)`: Returns the last modified time of the path.
+- `getContents($path)`: Returns the contents of the given path.
+
+Below is an example of implementing a Flow adapter to string arrays:
+
+```php
+<?php
+require 'path/to/src/Flow/Loader.php';
+
+use Flow\Loader;
+use Flow\Adapter;
+
+class ArrayAdapter implements Adapter
+{
+    static $templates = array(
+        'first.html' => 'First! {% include "second.html" %}',
+        'second.html' => 'Second!',
+    );
+
+    public function isReadable($path)
+    {
+        return isset(self::$templates[$path]);
+    }
+
+    public function lastModified($path)
+    {
+        return filemtime(__FILE__);
+    }
+
+    public function getContents($path)
+    {
+        return self::$templates[$path];
+    }
+}
+
+Loader::autoload();
+$flow = new Loader(array(
+    'source'  => __DIR__ . '/templates',
+    'target'  => __DIR__ . '/cache',
+    'mode'    => Loader::RECOMPILE_ALWAYS,
+    'adapter' => new ArrayAdapter,
+));
+$flow->load('first.html')->display();
+```
+
+The above will compile the templates and render the following:
+
+```
+First! Second!
+```
 
 ## Syntax Checking
 

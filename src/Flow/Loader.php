@@ -42,14 +42,11 @@ class Loader
             'helpers' => array(),
         );
 
-        if (!($source = realpath($options['source']))) {
-            throw new \RuntimeException(sprintf(
-                'source directory %s not found',
-                $options['source']
-            ));
+        if (!isset($options['adapter'])) {
+            $options['adapter'] = new FileAdapter($options['source']);
         }
 
-        if (!($target = realpath($options['target']))) {
+        if (!($target = realpath($options['target'])) || !is_dir($target)) {
             throw new \RuntimeException(sprintf(
                 'target directory %s not found',
                 $options['target']
@@ -57,9 +54,10 @@ class Loader
         }
 
         $this->options = array(
-            'source'  => $source,
+            'source'  => $options['source'],
             'target'  => $target,
             'mode'    => $options['mode'],
+            'adapter' => $options['adapter'],
             'helpers' => $options['helpers'],
         );
 
@@ -67,21 +65,15 @@ class Loader
         $this->cache = array();
     }
 
-    public function resolvePath($template, $from = null)
+    public function resolvePath($template, $from = '')
     {
-        $dirname = isset($from) ? trim(dirname($from), './') : '';
+        $source = $this->options['source'];
 
-        $path = $this->options['source'] . '/';
-        if (substr($template, 0, 1) === '/') {
-            $path .= trim($template, '/');
-        } else {
-            $path .= (!empty($dirname) ? $dirname . '/' : '') . $template;
-        }
-
+        $path = $source . '/' . dirname($from) . '/' . $template;
         $path = preg_replace('#/{2,}#', '/', strtr($path, '\\', '/'));
 
         $parts = array();
-        foreach (explode('/', $path) as $part) {
+        foreach (explode('/', $path) as $i => $part) {
             if ($part === '..') {
                 if (!empty($parts)) array_pop($parts);
             } elseif ($part !== '.') {
@@ -89,28 +81,33 @@ class Loader
             }
         }
 
-        return implode('/', $parts);
+        $path = explode('/', $path);
+        foreach (explode('/', $source) as $i => $part) {
+            if ($part !== $parts[$i]) {
+                throw new \RuntimeException(sprintf(
+                    '%s is outside the source directory',
+                    $template
+                ));
+            }
+        }
+
+        $path = trim(substr(implode('/', $parts), strlen($source)), '/');
+
+        return $path;
     }
 
     public function compile($template, $mode = null)
     {
-        $source = $this->resolvePath($template);
+        $source  = $this->options['source'];
+        $adapter = $this->options['adapter'];
 
-        $name  = substr($source, strlen($this->options['source']) + 1);
-        $class = self::CLASS_PREFIX . md5($name);
+        $path = $this->resolvePath($template);
 
-        // $source refers to file outside source directory
-        if (strpos(dirname($source), $this->options['source']) !== 0) {
+        $class = self::CLASS_PREFIX . md5($path);
+
+        if (!$adapter->isReadable($path)) {
             throw new \RuntimeException(sprintf(
-                'the path %s is outside the source directory',
-                $template
-            ));
-        }
-
-        // $source is not a readable file
-        if (!is_readable($source)) {
-            throw new \RuntimeException(sprintf(
-                '%s is not a readable file',
+                '%s is not a valid readable template',
                 $template
             ));
         }
@@ -131,12 +128,12 @@ class Loader
         case self::RECOMPILE_NORMAL:
         default:
             $compile = !file_exists($target) ||
-                filemtime($target) < filemtime($source);
+                filemtime($target) < $adapter->lastModified($path);
             break;
         }
 
         if ($compile) {
-            $lexer    = new Lexer($name, file_get_contents($source));
+            $lexer    = new Lexer($path, $adapter->getContents($path));
             $parser   = new Parser($lexer->tokenize());
             $compiler = new Compiler($parser->parse());
             $compiler->compile($target);
@@ -145,21 +142,23 @@ class Loader
         return $this;
     }
 
-    public function load($template, $from = null)
+    public function load($template, $from = '')
     {
         if ($template instanceof Template) {
             return $template;
         }
 
+        $source  = $this->options['source'];
+        $adapter = $this->options['adapter'];
+
         if (isset($this->paths[$template . $from])) {
-            $source = $this->paths[$template . $from];
+            $path = $this->paths[$template . $from];
         } else {
-            $source = $this->resolvePath($template, $from);
-            $this->paths[$template . $from] = $source;
+            $path = $this->resolvePath($template, $from);
+            $this->paths[$template . $from] = $path;
         }
 
-        $name  = substr($source, strlen($this->options['source']) + 1);
-        $class = self::CLASS_PREFIX . md5($name);
+        $class = self::CLASS_PREFIX . md5($path);
 
         if (isset($this->cache[$class])) {
             return $this->cache[$class];
@@ -167,18 +166,9 @@ class Loader
 
         if (!class_exists($class, false)) {
 
-            // $source refers to file outside source directory
-            if (strpos(dirname($source), $this->options['source']) !== 0) {
+            if (!$adapter->isReadable($path)) {
                 throw new \RuntimeException(sprintf(
-                    'the path %s is outside the source directory',
-                    $template
-                ));
-            }
-
-            // $source is not a readable file
-            if (!is_readable($source)) {
-                throw new \RuntimeException(sprintf(
-                    '%s is not a readable file',
+                    '%s is not a valid readable template',
                     $template
                 ));
             }
@@ -195,12 +185,12 @@ class Loader
             case self::RECOMPILE_NORMAL:
             default:
                 $compile = !file_exists($target) ||
-                    filemtime($target) < filemtime($source);
+                    filemtime($target) < $adapter->lastModified($path);
                 break;
             }
 
             if ($compile) {
-                $lexer    = new Lexer($name, file_get_contents($source));
+                $lexer    = new Lexer($path, $adapter->getContents($path));
                 $parser   = new Parser($lexer->tokenize());
                 $compiler = new Compiler($parser->parse());
                 $compiler->compile($target);
@@ -215,29 +205,22 @@ class Loader
 
     public function isValid($template, &$error = null)
     {
-        $source = $this->resolvePath($template);
+        $source  = $this->options['source'];
+        $adapter = $this->options['adapter'];
 
-        $name  = substr($source, strlen($this->options['source']) + 1);
-        $class = self::CLASS_PREFIX . md5($name);
+        $path = $this->resolvePath($template);
 
-        // $source refers to file outside source directory
-        if (strpos(dirname($source), $this->options['source']) !== 0) {
+        $class = self::CLASS_PREFIX . md5($path);
+
+        if (!$adapter->isReadable($path)) {
             throw new \RuntimeException(sprintf(
-                'the path %s is outside the source directory',
-                $template
-            ));
-        }
-
-        // $source is not a readable file
-        if (!is_readable($source)) {
-            throw new \RuntimeException(sprintf(
-                '%s is not a readable file',
+                '%s is not a valid readable template',
                 $template
             ));
         }
 
         try {
-            $lexer    = new Lexer($name, file_get_contents($source));
+            $lexer    = new Lexer($path, $adapter->getContents($path));
             $parser   = new Parser($lexer->tokenize());
             $compiler = new Compiler($parser->parse());
         } catch (\Exception $e) {
@@ -245,6 +228,43 @@ class Loader
             return false;
         }
         return true;
+    }
+}
+
+interface Adapter
+{
+    public function isReadable($path);
+    public function lastModified($path);
+    public function getContents($path);
+}
+
+class FileAdapter implements Adapter
+{
+    protected $source;
+
+    public function __construct($source)
+    {
+        if (!($this->source = realpath($source)) || !is_dir($this->source)) {
+            throw new \RuntimeException(sprintf(
+                'source directory %s not found',
+                $source
+            ));
+        }
+    }
+
+    public function isReadable($path)
+    {
+        return is_readable($this->source. '/' . $path);
+    }
+
+    public function lastModified($path)
+    {
+        return filemtime($this->source. '/' . $path);
+    }
+
+    public function getContents($path)
+    {
+        return file_get_contents($this->source . '/' . $path);
     }
 }
 
