@@ -879,13 +879,15 @@ class AttributeExpression extends Expression
         $this->node->compile($compiler);
         $compiler->raw(', ');
         $this->attr->compile($compiler);
-        if (!empty($this->args)) {
+        if (is_array($this->args)) {
             $compiler->raw(', array(');
             foreach ($this->args as $arg) {
                 $arg->compile($compiler);
                 $compiler->raw(', ');
             }
             $compiler->raw(')');
+        } else {
+            $compiler->raw(', false');
         }
         $compiler->raw(')');
     }

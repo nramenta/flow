@@ -299,14 +299,19 @@ You can access an object's member variables or methods using the `.` operator:
 When calling an object's method, the parentheses are optional when there are no
 arguments passed. The full semantics of object attribute access are as follows:
 
-1. Check if the attribute is a callable method. If it is, call and return the
-   invoked method.
-2. Check if the attribute is a member variable. If it is, return the value.
-3. If it's neither a method nor a member variable, return null.
+For attribute access *without* parentheses, in order of priority:
+1. If the attribute is an accessible member variable, return its value.
+2. If the object implements `__get`, invoke and return its value.
+3. If the attribute is a callable method, call and return its value.
+4. If the object implements `__call`, invoke and return its value.
+5. Return null.
 
-If your object implements `__call` or `__get` then it will invoke those methods
-for rules #1 and #2 respectively regardless of whether the method or member
-variable actually exists.
+For attribute access with parentheses, in order of priority:
+1. If the attribute is a callable method, call and return its value.
+2. If the object implements `__call`, invoke and return its value.
+3. Return null.
+
+You can always force a method call by using parentheses.
 
 ### Arrays
 

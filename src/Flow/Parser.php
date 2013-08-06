@@ -911,9 +911,9 @@ class Parser
             $this->stream->expect(Token::OPERATOR_TYPE, ']');
         }
 
-        $args = array();
+        $args = false;
         if ($this->stream->consume(Token::OPERATOR_TYPE, '(')) {
-            $call = true;
+            $args = array();
             while (!$this->stream->test(Token::OPERATOR_TYPE, ')')) {
                 if (count($args)) {
                     $this->stream->expect(Token::OPERATOR_TYPE, ',');

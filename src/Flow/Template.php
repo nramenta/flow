@@ -187,9 +187,12 @@ abstract class Template
         if (is_array($obj)) {
             if (isset($obj[$attr])) {
                 if ($obj[$attr] instanceof \Closure) {
-                    $callable = $obj[$attr];
-                    array_unshift($args, $obj);
-                    return call_user_func_array($callable, $args);
+                    if (is_array($args)) {
+                        array_unshift($args, $obj);
+                    } else {
+                        $args = array($obj);
+                    }
+                    return call_user_func_array($obj[$attr], $args);
                 } else {
                     return $obj[$attr];
                 }
@@ -197,12 +200,25 @@ abstract class Template
                 return null;
             }
         } elseif (is_object($obj)) {
-            if (is_callable(array($obj, $attr))) {
+
+            if (is_array($args)) {
                 $callable = array($obj, $attr);
-                return call_user_func_array($callable, $args);
+                return is_callable($callable) ?
+                    call_user_func_array($callable, $args) : null;
             } else {
-                return @$obj->$attr;
+                $members = array_keys(get_class_vars(get_class($obj)));
+                $methods = get_class_methods(get_class($obj));
+                if (in_array($attr, $members)) {
+                    return @$obj->$attr;
+                } elseif (in_array('__get', $methods)) {
+                    return $obj->__get($attr);
+                } else {
+                    $callable = array($obj, $attr);
+                    return is_callable($callable) ?
+                        call_user_func($callable) : null;
+                }
             }
+
         } else {
             return null;
         }
