@@ -45,6 +45,7 @@ class Loader
 
         $options += array(
             'mode'    => self::RECOMPILE_NORMAL,
+            'mkdir'   => 0777,
             'helpers' => array(),
         );
 
