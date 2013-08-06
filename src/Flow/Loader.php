@@ -79,13 +79,9 @@ class Loader
         $this->cache = array();
     }
 
-    public function resolvePath($template, $from = '')
+    public function normalizePath($path)
     {
-        $source = $this->options['source'];
-
-        $path = $source . '/' . dirname($from) . '/' . $template;
         $path = preg_replace('#/{2,}#', '/', strtr($path, '\\', '/'));
-
         $parts = array();
         foreach (explode('/', $path) as $i => $part) {
             if ($part === '..') {
@@ -94,9 +90,19 @@ class Loader
                 $parts[] = $part;
             }
         }
+        return $parts;
+    }
 
-        $path = explode('/', $path);
-        foreach (explode('/', $source) as $i => $part) {
+    public function resolvePath($template, $from = '')
+    {
+        $source = implode('/', $this->normalizePath($this->options['source']));
+
+
+        $parts = $this->normalizePath(
+            $source . '/' . dirname($from) . '/' . $template
+        );
+
+        foreach ($this->normalizePath($source) as $i => $part) {
             if ($part !== $parts[$i]) {
                 throw new \RuntimeException(sprintf(
                     '%s is outside the source directory',
