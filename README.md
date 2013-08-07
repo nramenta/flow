@@ -54,8 +54,8 @@ try {
 
 The `Loader` constructor accepts an array of options. They are:
 
-- `source`: Directory to template source files.
-- `target`: Directory to compiled PHP files.
+- `source`: Path to template source files.
+- `target`: Path to compiled PHP files.
 - `mode`: Recompilation mode.
 - `mkdir`: Mode to pass to `mkdir()` when the target directory doesn't exist.
   Use `false` to suppress automatic target directory creation. Defaults to 0777.
