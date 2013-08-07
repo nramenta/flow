@@ -300,6 +300,7 @@ When calling an object's method, the parentheses are optional when there are no
 arguments passed. The full semantics of object attribute access are as follows:
 
 For attribute access *without* parentheses, in order of priority:
+
 1. If the attribute is an accessible member variable, return its value.
 2. If the object implements `__get`, invoke and return its value.
 3. If the attribute is a callable method, call and return its value.
@@ -307,6 +308,7 @@ For attribute access *without* parentheses, in order of priority:
 5. Return null.
 
 For attribute access with parentheses, in order of priority:
+
 1. If the attribute is a callable method, call and return its value.
 2. If the object implements `__call`, invoke and return its value.
 3. Return null.
