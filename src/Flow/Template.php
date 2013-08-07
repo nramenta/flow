@@ -223,6 +223,47 @@ abstract class Template
             return null;
         }
     }
+
+    public function setAttr(&$obj, $attrs, $value)
+    {
+        if (empty($attrs)) {
+            $obj = $value;
+            return;
+        }
+        $attr = array_shift($attrs);
+        if (is_object($obj)) {
+            $class = get_class($obj);
+            $members = array_keys(get_object_vars($obj));
+            if (!in_array($attr, $members)) {
+                if (empty($attrs) && method_exists($obj, '__set')) {
+                    $obj->__set($attr, $value);
+                    return;
+                } elseif (property_exists($class, $attr)) {
+                    throw new \RuntimeException(
+                        "inaccessible '$attr' object attribute"
+                    );
+                } else {
+                    if ($attr === null || $attr === false || $attr === '') {
+                        if ($attr === null)  $token = 'null';
+                        if ($attr === false) $token = 'false';
+                        if ($attr === '')    $token = 'empty string';
+                        throw new \RuntimeException(
+                            sprintf(
+                                'invalid object attribute (%s) in %s line %d',
+                                $token, static::NAME, $this->getLineTrace()
+                            )
+                        );
+                    }
+                    $obj->{$attr} = null;
+                }
+            }
+            if (!isset($obj->$attr)) $obj->$attr = null;
+            $this->setAttr($obj->$attr, $attrs, $value);
+        } else {
+            if (!is_array($obj)) $obj = array();
+            $this->setAttr($obj[$attr], $attrs, $value);
+        }
+    }
 }
 
 namespace Flow\Helper;

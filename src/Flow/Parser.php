@@ -318,18 +318,30 @@ class Parser
 
     protected function parseSet($token)
     {
+        $attrs = array();
         $name = $this->stream->expect(Token::NAME_TYPE)->getValue();
+        while (!$this->stream->test(Token::OPERATOR_TYPE, '=') &&
+            !$this->stream->test(Token::BLOCK_END_TYPE)
+        ) {
+            if ($this->stream->consume(Token::OPERATOR_TYPE, '.')) {
+                $attrs[] = $this->stream->expect(Token::NAME_TYPE)->getValue();
+            } else {
+                $this->stream->expect(Token::OPERATOR_TYPE, '[');
+                $attrs[] = $this->parseExpression();
+                $this->stream->expect(Token::OPERATOR_TYPE, ']');
+            }
+        }
         if ($this->stream->consume(Token::OPERATOR_TYPE, '=')) {
             $value = $this->parseExpression();
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $node = $this->parseIfModifier(
-                $token, new SetNode($name, $value, $token->getLine())
+                $token, new SetNode($name, $attrs, $value, $token->getLine())
             );
         } else {
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $body = $this->subparse('endset', true);
             $this->stream->expect(Token::BLOCK_END_TYPE);
-            $node = new SetNode($name, $body, $token->getLine());
+            $node = new SetNode($name, $attrs, $body, $token->getLine());
         }
         return $node;
     }
