@@ -206,7 +206,7 @@ abstract class Template
                 return is_callable($callable) ?
                     call_user_func_array($callable, $args) : null;
             } else {
-                $members = array_keys(get_class_vars(get_class($obj)));
+                $members = array_keys(get_object_vars($obj));
                 $methods = get_class_methods(get_class($obj));
                 if (in_array($attr, $members)) {
                     return @$obj->$attr;
