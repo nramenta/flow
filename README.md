@@ -172,7 +172,7 @@ There are several types of literals: numbers, strings, booleans, arrays, and
 
 ### Numbers
 
-Numbers can be integers of floats:
+Numbers can be integers or floats:
 
     {{ 42 }} and {{ 3.14 }}
 
@@ -356,6 +356,14 @@ function as the second and consecutive arguments. This rule lets you have arrays
 that behave not unlike objects: they can access other member values or functions
 in the array.
 
+### Dynamic attribute access
+
+It's possible to dynamically access an object or array attributes:
+
+    {% set attr = 'name' %}
+
+    Your name: {{ user[attr] }}
+
 ## Helpers 
 
 Helpers are simple functions you can use to test or modify values prior to use.
@@ -448,7 +456,6 @@ $helpers = array(
 $flow = new Loader(array(
     'source'  => 'templates',
     'target'  => 'cache',
-    'reload'  => true,
     'helpers' => $helpers,
 ));
 
@@ -492,10 +499,10 @@ multiple branches:
 Values considered to be false are `false`, `null`, `0`, `'0'`, `''`, and `[]`
 (empty array). This behavior is consistent with the way PHP treats data types in
 a boolean context. From experience, it's generally useful to have the string
-`'0'` be considered a false value: many times, the data comes from a relational
-database which, in most drivers in PHP, integer flags in returned tuples are
-converted to either `'1'` or `'0'`. You can always use the strict `===` and
-`!==` comparison operators.
+`'0'` be considered a false value: usually the data comes from a relational
+database which, in most drivers in PHP, integers in returned tuples are
+converted to strings. You can always use the strict `===` and `!==` comparison
+operators.
 
 ### Inline if and unless statement modifiers
 
@@ -582,9 +589,12 @@ next iteration, respectively. The following will print "1 2 3":
 
 ## Set
 
-It is sometimes unavoidable to set values to variables; use the `set` construct:
+It is sometimes unavoidable to set values to variables and object or array
+attributes; use the `set` construct:
 
     {% set fullname = user.firstname .. ' ' .. user.lastname %}
+
+    {% set user.fullname = fullname %}
 
 You can also use `set` as a way to buffer output and store the result in a
 variable:
@@ -760,7 +770,7 @@ object, or relative to the current template's directory.
 
 ### Absolute paths
 
-Absolute paths must be prefixed by a `/` character like so:
+Absolute paths must begin with a `/` character like so:
 
     {% include "/foo/bar.html" %}
 
@@ -770,7 +780,7 @@ regardless of what the current template's directory is.
 
 ### Relative paths
 
-Relative paths must **not** be prefixed by a `/` character:
+Relative paths must **not** begin with a `/` character:
 
     {% include "far.html" %}
 
