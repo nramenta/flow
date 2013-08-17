@@ -527,6 +527,9 @@ The following is equivalent to the above:
 
     {{ "this will be printed" unless this_evaluates_to_false }}
 
+Inline if and unless modifiers are available for output tags, break and continue
+tags, extends tags, parent tags, set tags, and include tags.
+
 ### Ternary operator `?:`
 
 You can use the ternary operator if you need branching inside an expression:
