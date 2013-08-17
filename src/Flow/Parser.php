@@ -309,8 +309,8 @@ class Parser
             );
         }
 
-        $this->extends = new ExtendsNode(
-            $this->parseExpression(), $token->getLine()
+        $this->extends = $this->parseIfModifier(
+            $token, new ExtendsNode($this->parseExpression(), $token->getLine())
         );
         $this->stream->expect(Token::BLOCK_END_TYPE);
         return null;

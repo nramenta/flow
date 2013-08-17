@@ -220,7 +220,7 @@ class ModuleNode extends Node
 
         // extends
         if ($this->extends) {
-            $this->extends->compile($compiler, $indent);
+            $this->extends->compile($compiler, $indent + 2);
         }
         $this->body->compile($compiler, $indent + 2);
         $compiler->raw("}\n", $indent + 1);
@@ -282,17 +282,17 @@ class ExtendsNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw('$this->parent = $this->loadExtends(', $indent + 2);
+        $compiler->raw('$this->parent = $this->loadExtends(', $indent);
         $this->parent->compile($compiler);
         $compiler->raw(');' . "\n");
 
-        $compiler->raw('if (isset($this->parent)) {' . "\n", $indent + 2);
+        $compiler->raw('if (isset($this->parent)) {' . "\n", $indent);
         $compiler->raw(
             'return $this->parent->display' .
             '($context, $blocks + $this->blocks, $macros + $this->macros);'.
-            "\n", $indent + 3
+            "\n", $indent + 1
         );
-        $compiler->raw("}\n", $indent + 2);
+        $compiler->raw("}\n", $indent);
     }
 }
 
