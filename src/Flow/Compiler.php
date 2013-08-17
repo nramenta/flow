@@ -311,7 +311,7 @@ class ImportNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw("'$this->module' => ", $indent + 3);
+        $compiler->raw("'$this->module' => ", $indent);
         $compiler->raw('$this->loadImport(');
         $this->import->compile($compiler);
         $compiler->raw("),\n");
