@@ -333,10 +333,10 @@ class Parser
         }
         if ($this->stream->consume(Token::OPERATOR_TYPE, '=')) {
             $value = $this->parseExpression();
-            $this->stream->expect(Token::BLOCK_END_TYPE);
             $node = $this->parseIfModifier(
                 $token, new SetNode($name, $attrs, $value, $token->getLine())
             );
+            $this->stream->expect(Token::BLOCK_END_TYPE);
         } else {
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $body = $this->subparse('endset', true);
