@@ -129,11 +129,11 @@ class Lexer
                 $this->trim = false;
             }
             if ($token == self::COMMENT_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, ' '), $line);
+                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
             } elseif ($token == self::BLOCK_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, ' '), $line);
+                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
             } elseif ($token == self::OUTPUT_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, ' '), $line);
+                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
             } else {
                 $tokens[] = Token::tokenText($text, $line);
             }
@@ -170,10 +170,10 @@ class Lexer
             ) {
                 $raw = $match[2];
                 if ($match[1] == self::BLOCK_END_TAG_TRIM) {
-                    $raw = preg_replace("/^[ \t]*\n?/", '', $text);
+                    $raw = preg_replace("/^[ \t]*\n?/", '', $raw);
                 }
                 if ($match[3] == self::BLOCK_START_TAG_TRIM) {
-                    $raw = rtrim($raw, ' ');
+                    $raw = rtrim($raw, " \t");
                 }
                 if ($match[4] == self::BLOCK_END_TAG_TRIM) {
                     $this->trim = true;
