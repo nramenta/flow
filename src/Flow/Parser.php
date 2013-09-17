@@ -610,10 +610,22 @@ class Parser
     protected function parseConcatExpression()
     {
         $line = $this->stream->getCurrentToken()->getLine();
-        $left = $this->parseAddExpression();
+        $left = $this->parseJoinExpression();
         while ($this->stream->consume(Token::OPERATOR_TYPE, '..')) {
-            $right = $this->parseAddExpression();
+            $right = $this->parseJoinExpression();
             $left = new ConcatExpression($left, $right, $line);
+            $line = $this->stream->getCurrentToken()->getLine();
+        }
+        return $left;
+    }
+
+    protected function parseJoinExpression()
+    {
+        $line = $this->stream->getCurrentToken()->getLine();
+        $left = $this->parseAddExpression();
+        while ($this->stream->consume(Token::OPERATOR_TYPE, '~')) {
+            $right = $this->parseAddExpression();
+            $left = new JoinExpression($left, $right, $line);
             $line = $this->stream->getCurrentToken()->getLine();
         }
         return $left;

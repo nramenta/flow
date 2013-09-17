@@ -194,6 +194,12 @@ concatenation instead:
 
     {{ "This is a string " .. 'This is also a string' }}
 
+You can also join two or more strings or scalars using the join operator:
+
+    {{ "Welcome," ~ user.name }}
+
+The join operator uses a single space character to join strings together.
+
 ### Booleans
 
     {{ true }} or {{ false }}
@@ -269,7 +275,11 @@ Will yield
 
     1 + 1 = 2 and everything is OK again!
 
-String output and concatenation coerce scalar values into strings.
+Use `~` to join two or more scalars as string using a single space character:
+
+    {{ "Welcome," ~ user.name }}
+
+String output, concatenations and joins coerce scalar values into strings.
 
 ### Operator precedence
 

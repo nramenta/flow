@@ -714,6 +714,14 @@ class ConcatExpression extends BinaryExpression
     }
 }
 
+class JoinExpression extends BinaryExpression
+{
+    public function operator()
+    {
+        return ".' '.";
+    }
+}
+
 class CompareExpression extends Expression
 {
     protected $expr;

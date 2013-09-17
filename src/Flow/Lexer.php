@@ -37,7 +37,7 @@ class Lexer
     const REGEX_STRING   = '/(?:"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|
         \'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\')/Axsmu';
     const REGEX_OPERATOR = '/and\b|xor\b|or\b|not\b|in\b|
-        =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\]().,%*\/+|?:\-@]/Ax';
+        =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\]().,%*\/+|?:\-@~]/Ax';
 
     public function __construct($name, $source)
     {
