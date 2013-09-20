@@ -721,6 +721,22 @@ if there are no arguments passed. Parameters and variables declared inside
 macros with the `set` construct are local to the macro and will cease to exist
 once the macro returns.
 
+Macros are dynamically scoped. They inherit the calling context:
+
+    {% macro greet %}
+    <p>{{ "Hello," ~ name }}</p>
+    {% endmacro %}
+
+    {% set name = "Joe" %}
+
+    {{ @greet }}
+
+The above will print:
+
+    <p>Hello Joe</p>
+
+The calling context is masked by the arguments and the default parameter values.
+
 The output of macros are by default unescaped, regardless of what the current
 `autoescape` setting is. To escape the output, you must explicitly apply the
 `escape` or `e` filter. Inside the macros themselves, autoescape works as usual

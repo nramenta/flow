@@ -82,11 +82,11 @@ abstract class Template
         }
     }
 
-    public function expandMacro($name, $context, $macros)
+    public function expandMacro($name, $params, $context, $macros)
     {
         $macros = $macros + $this->macros;
         if (isset($macros[$name]) && is_callable($macros[$name])) {
-            return call_user_func($macros[$name], $context, $macros);
+            return call_user_func($macros[$name], $params, $context, $macros);
         } else {
             throw new \RuntimeException(
                 sprintf(
