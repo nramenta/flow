@@ -756,6 +756,9 @@ macro, simply prepend the macro name with the alias followed by a dot:
 
     {{ @form.text_input }}
 
+Imported macros only work in the template that imports them. They are never
+inherited.
+
 ### Decorating macros
 
 You can decorate macros by importing them first:
