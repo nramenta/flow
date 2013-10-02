@@ -690,7 +690,7 @@ error.
 
 ## Macro
 
-Macros are a great way to make reusable partial templates:
+Macros are a great way to make flexible and reusable partial templates:
 
     {% macro bolder(text) %}
     <b>{{ text }}</b>
@@ -742,7 +742,15 @@ The output of macros are by default unescaped, regardless of what the current
 `escape` or `e` filter. Inside the macros themselves, autoescape works as usual
 and depends on the current autoescape settings.
 
-Declaring macros inside blocks or other macros is a syntax error.
+Undefined macros returns null when called. This allows you to do the following:
+
+    {{ @my_custom_macro or @template_default_macro }}
+
+Macros are inherited by extending templates and at the same time override other
+macros with the same name in parent templates.
+
+Declaring macros inside blocks or other macros is a syntax error. Redeclaring
+macros in a template is also a syntax error.
 
 ### Importing macros
 
@@ -756,8 +764,9 @@ macro, simply prepend the macro name with the alias followed by a dot:
 
     {{ @form.text_input }}
 
-Imported macros only work in the template that imports them. They are never
-inherited.
+Imported macros are inherited by extending templates using the same alias and
+at the same time override other imported macros with the same alias and name in
+parent templates.
 
 ### Decorating macros
 
@@ -777,9 +786,6 @@ You can decorate macros by importing them first:
 The above when rendered will yield:
 
     Emphasized text: <i><b>this is pretty cool!</b></i>
-
-Decorating macros lets you effectively extend macros without the headache that
-an inheritance mechanism can potentially induce.
 
 ## Include
 
