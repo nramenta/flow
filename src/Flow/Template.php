@@ -98,14 +98,6 @@ abstract class Template
             return call_user_func(
                 $macros[$name], $params, $context, $macros, $imports
             );
-        } else {
-            throw new \RuntimeException(
-                sprintf(
-                    'undefined macro "%s" in %s line %d',
-                    $module ? ($module . '.' . $name) : $name, static::NAME,
-                    $this->getLineTrace()
-                )
-            );
         }
     }
 
