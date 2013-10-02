@@ -451,10 +451,10 @@ class Parser
         $this->inMacro = true;
         $name = $this->parseName()->getValue();
         if (isset($this->macros[$name])) {
-            throw new SyntaxError(sprintf(
-                'cannot redeclare macro "%s"',
-                $name
-            ), $this->getName(), $token->getLine());
+            throw new SyntaxError(
+                sprintf('macro "%s" already defined', $name),
+                $this->getName(), $token->getLine()
+            );
         }
         $args = array();
         if ($this->stream->consume(Token::OPERATOR_TYPE, '(')) {
