@@ -52,7 +52,7 @@ abstract class Template
     public function loadImport($template)
     {
         try {
-            return $this->loader->load($template, static::NAME);
+            return $this->loader->load($template, static::NAME)->getMacros();
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error importing %s (%s) from %s line %d',
@@ -62,36 +62,48 @@ abstract class Template
         }
     }
 
-    public function displayBlock($name, $context, $blocks, $macros)
+    public function displayBlock($name, $context, $blocks, $macros, $imports)
     {
-        $blocks = $blocks + $this->blocks;
+        $blocks  = $blocks + $this->blocks;
+        $macros  = $macros + $this->macros;
+        $imports = $imports + $this->imports;
         if (isset($blocks[$name]) && is_callable($blocks[$name])) {
-            return call_user_func($blocks[$name], $context, $blocks, $macros);
+            return call_user_func(
+                $blocks[$name], $context, $blocks, $macros, $imports
+            );
         }
     }
 
-    public function displayParent($name, $context, $blocks, $macros)
+    public function displayParent($name, $context, $blocks, $macros, $imports)
     {
         $parent = $this;
         while ($parent = $parent->parent) {
             if (isset($parent->blocks[$name]) &&
                 is_callable($parent->blocks[$name])) {
                 return call_user_func($parent->blocks[$name], $context, $blocks,
-                        $macros);
+                        $macros, $imports);
             }
         }
     }
 
-    public function expandMacro($name, $params, $context, $macros)
+    public function expandMacro($module, $name, $params, $context, $macros,
+        $imports)
     {
-        $macros = $macros + $this->macros;
+        $macros  = $macros + $this->macros;
+        $imports = $imports + $this->imports;
+        if (isset($module) && isset($imports[$module])) {
+            $macros = $macros + $imports[$module];
+        }
         if (isset($macros[$name]) && is_callable($macros[$name])) {
-            return call_user_func($macros[$name], $params, $context, $macros);
+            return call_user_func(
+                $macros[$name], $params, $context, $macros, $imports
+            );
         } else {
             throw new \RuntimeException(
                 sprintf(
                     'undefined macro "%s" in %s line %d',
-                    $name, static::NAME, $this->getLineTrace()
+                    $module ? ($module . '.' . $name) : $name, static::NAME,
+                    $this->getLineTrace()
                 )
             );
         }
@@ -166,10 +178,10 @@ abstract class Template
     }
 
     abstract public function display($context = array(), $blocks = array(),
-        $macros = array());
+        $macros = array(), $imports = array());
 
     public function render($context = array(), $blocks = array(),
-        $macros = array())
+        $macros = array(), $imports = array())
     {
         ob_start();
         $this->display($context, $blocks, $macros);
@@ -180,6 +192,21 @@ abstract class Template
     {
         return new Helper\ContextIterator($seq, isset($context['loop']) ?
             $context['loop'] : null);
+    }
+
+    public function getBlocks()
+    {
+        return $this->blocks;
+    }
+
+    public function getMacros()
+    {
+        return $this->macros;
+    }
+
+    public function getImports()
+    {
+        return $this->imports;
     }
 
     public function getAttr($obj, $attr, $args = array())

@@ -213,7 +213,8 @@ class ModuleNode extends Node
 
         $compiler->raw(
             'public function display' .
-            '($context = array(), $blocks = array(), $macros = array())' .
+            '($context = array(), $blocks = array(), $macros = array(),' .
+            ' $imports = array())' .
             "\n", $indent + 1
         );
         $compiler->raw("{\n", $indent + 1);
@@ -261,7 +262,8 @@ class BlockNode extends Node
         $compiler->addTraceInfo($this, $indent, false);
         $compiler->raw(
             'public function block_' . $this->name .
-            '($context, $blocks = array(), $macros = array())' . "\n", $indent
+            '($context, $blocks = array(), $macros = array(),' .
+            ' $imports = array())' . "\n", $indent
         );
         $compiler->raw("{\n", $indent);
         $this->body->compile($compiler, $indent + 1);
@@ -289,7 +291,8 @@ class ExtendsNode extends Node
         $compiler->raw('if (isset($this->parent)) {' . "\n", $indent);
         $compiler->raw(
             'return $this->parent->display' .
-            '($context, $blocks + $this->blocks, $macros + $this->macros);'.
+            '($context, $blocks + $this->blocks, $macros + $this->macros,' .
+            ' $imports + $this->imports);'.
             "\n", $indent + 1
         );
         $compiler->raw("}\n", $indent);
@@ -333,7 +336,7 @@ class BlockDisplayNode extends Node
         $compiler->addTraceInfo($this, $indent);
         $compiler->raw(
             '$this->displayBlock(\'' . $this->name .
-            '\', $context, $blocks, $macros);' . "\n", $indent
+            '\', $context, $blocks, $macros, $imports);' . "\n", $indent
         );
     }
 }
@@ -353,7 +356,7 @@ class ParentNode extends Node
         $compiler->addTraceInfo($this, $indent);
         $compiler->raw(
             '$this->displayParent(\'' . $this->name .
-            '\', $context, $blocks, $macros);' . "\n", $indent
+            '\', $context, $blocks, $macros, $imports);' . "\n", $indent
         );
     }
 }
@@ -1038,7 +1041,8 @@ class MacroNode extends Node
         $compiler->addTraceInfo($this, $indent, false);
         $compiler->raw(
             'public function macro_' . $this->name .
-            '($params = array(), $context = array(), $macros = array())' .
+            '($params = array(), $context = array(), $macros = array(),' .
+            ' $imports = array())' .
             "\n", $indent
         );
         $compiler->raw("{\n", $indent);
@@ -1047,8 +1051,8 @@ class MacroNode extends Node
         $i = 0;
         foreach ($this->args as $key => $val) {
             $compiler->raw(
-                "'$key' => !isset(\$context['$key']) &&" .
-                " isset(\$context[$i]) ? \$context[$i] : ",
+                "'$key' => !isset(\$params['$key']) &&" .
+                " isset(\$params[$i]) ? \$params[$i] : ",
                 $indent + 2
             );
             $val->compile($compiler);
@@ -1081,7 +1085,8 @@ class MacroExpression extends Expression
     public function compile($compiler, $indent = 0)
     {
         $compiler->raw(
-            '$this->expandMacro(\'' . $this->name . '\', array(', $indent
+            '$this->expandMacro(\'' . $this->module . '\', \'' . $this->name .
+            '\', array(', $indent
         );
         foreach ($this->args as $key => $val) {
             $compiler->raw("'$key' => ");
@@ -1090,10 +1095,11 @@ class MacroExpression extends Expression
         }
         if (isset($this->module)) {
             $compiler->raw(
-                '), $context, $this->imports[\'' . $this->module . '\']->macros)'
+                //'), $context, $macros, $this->imports + $imports)'
+                '), $context, $macros, $imports)'
             );
         } else {
-            $compiler->raw('), $context, $macros)');
+            $compiler->raw('), $context, $macros, $imports)');
         }
     }
 }
