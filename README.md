@@ -289,7 +289,7 @@ precedence in descending order:
 - Attribute access: `.` and `[]` for objects and arrays
 - Filter chaining: `|`
 - Arithmetic: unary `-` and `+`, `%`, `/`, `*`, `-`, `+`
-- Concatenation: `..`
+- Concatenation: `..`, `~`
 - Comparison: `!==`, `===`, `==`, `!=`, `<>`, `<`, `>`, `>=`, `<=`
 - Conditional: `in`, `not`, `and`, `or`, `xor`
 - Ternary: `? :`
