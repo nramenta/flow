@@ -739,17 +739,15 @@ The calling context is masked by the arguments and the default parameter values.
 
 The output of macros are by default unescaped, regardless of what the current
 `autoescape` setting is. To escape the output, you must explicitly apply the
-`escape` or `e` filter. Inside the macros themselves, autoescape works as usual
-and depends on the current autoescape settings.
+`escape` or `e` filter. Macro calls that are used as part of an expression will
+be escaped depending on the current `autoescape` setting. Inside the macros
+themselves, escaping works as usual and depends on the current `autoescape`
+settings. Undefined macros returns null when called.
 
-Undefined macros returns null when called. This allows you to do the following:
-
-    {{ @my_custom_macro or @template_default_macro }}
-
-Macros are inherited by extending templates and at the same time override other
+Macros are inherited by extending templates and at the same time overrides other
 macros with the same name in parent templates.
 
-Declaring macros inside blocks or other macros is a syntax error. Redeclaring
+Defining macros inside blocks or other macros is a syntax error. Redefining
 macros in a template is also a syntax error.
 
 ### Importing macros
@@ -764,9 +762,9 @@ macro, simply prepend the macro name with the alias followed by a dot:
 
     {{ @form.text_input }}
 
-Imported macros are inherited by extending templates using the same alias and
-at the same time override other imported macros with the same alias and name in
-parent templates.
+Imported macros are inherited by extending templates and at the same time
+overrides other imported macros with the same alias and name pair in parent
+templates.
 
 ### Decorating macros
 
