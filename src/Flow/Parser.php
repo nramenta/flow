@@ -236,10 +236,10 @@ class Parser
         $this->inForLoop++;
         $line = $token->getLine();
         $key = null;
-        $value = $this->stream->expect(Token::NAME_TYPE)->getValue();
+        $value = $this->parseName()->getValue();
         if ($this->stream->consume(Token::OPERATOR_TYPE, ',')) {
             $key = $value;
-            $value = $this->stream->expect(Token::NAME_TYPE)->getValue();
+            $value = $this->parseName()->getValue();
         }
         $this->stream->expect(Token::OPERATOR_TYPE, 'in');
         $seq = $this->parseExpression();
@@ -319,12 +319,12 @@ class Parser
     protected function parseSet($token)
     {
         $attrs = array();
-        $name = $this->stream->expect(Token::NAME_TYPE)->getValue();
+        $name = $this->parseName()->getValue();
         while (!$this->stream->test(Token::OPERATOR_TYPE, '=') &&
             !$this->stream->test(Token::BLOCK_END_TYPE)
         ) {
             if ($this->stream->consume(Token::OPERATOR_TYPE, '.')) {
-                $attrs[] = $this->stream->expect(Token::NAME_TYPE)->getValue();
+                $attrs[] = $this->parseName()->getValue();
             } else {
                 $this->stream->expect(Token::OPERATOR_TYPE, '[');
                 $attrs[] = $this->parseExpression();
@@ -464,7 +464,7 @@ class Parser
                     if ($this->stream->test(Token::OPERATOR_TYPE, ')'))
                         break;
                 }
-                $key = $this->stream->expect(Token::NAME_TYPE)->getValue();
+                $key = $this->parseName()->getValue();
                 if ($this->stream->consume(Token::OPERATOR_TYPE, '=')) {
                     $val = $this->parseLiteralExpression();
                 } else {
@@ -488,7 +488,7 @@ class Parser
     {
         $import = $this->parseExpression();
         $this->stream->expect(Token::NAME_TYPE, 'as');
-        $module = $this->stream->expect(Token::NAME_TYPE)->getValue();
+        $module = $this->parseName()->getValue();
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $this->imports[$module] = new ImportNode(
             $module, $import, $token->getLine()
@@ -740,6 +740,12 @@ class Parser
                 $node = $this->parseFunctionCallExpression($node);
             }
             break;
+        case Token::CONSTANT_TYPE:
+        case Token::OPERATOR_TYPE:
+            if (($name = $this->parseName(false)) !== null) {
+                $node = new NameExpression($name->getValue(), $token->getLine());
+                break;
+            }
         default:
             if ($this->stream->consume(Token::OPERATOR_TYPE, '@')) {
                 $node = new FilterExpression(
@@ -831,6 +837,9 @@ class Parser
 
     protected function parseMacroExpression($token)
     {
+        static $constants = array('true', 'false', 'null');
+        static $operators = array('and', 'xor', 'or', 'not', 'in');
+
         $module = null;
         $name = $this->parseName()->getValue();
         if ($this->stream->consume(Token::OPERATOR_TYPE, '.')) {
@@ -846,10 +855,12 @@ class Parser
                     if ($this->stream->test(Token::OPERATOR_TYPE, ')'))
                         break;
                 }
-                if ($this->stream->test(Token::NAME_TYPE) &&
+                if (($this->stream->test(Token::NAME_TYPE) ||
+                    $this->stream->test(Token::CONSTANT_TYPE, $constants) ||
+                    $this->stream->test(Token::OPERATOR_TYPE, $operators)) &&
                     $this->stream->look()->test(Token::OPERATOR_TYPE, '=')
                 ) {
-                    $key = $this->stream->expect(Token::NAME_TYPE)->getValue();
+                    $key = $this->parseName()->getValue();
                     $this->stream->expect(Token::OPERATOR_TYPE, '=');
                     $val = $this->parseExpression();
                     $args[$key] = $val;
@@ -932,7 +943,7 @@ class Parser
         $token = $this->stream->getCurrentToken();
         if ($this->stream->consume(Token::OPERATOR_TYPE, '.')) {
             $attr = new ConstantExpression(
-                $this->stream->expect(Token::NAME_TYPE)->getValue(),
+                $this->parseName()->getValue(),
                 $token->getLine()
             );
         } else {
