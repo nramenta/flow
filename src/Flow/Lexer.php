@@ -322,7 +322,9 @@ class Lexer
             $this->adjustLineChar($match[1]);
 
         } elseif ($this->position == self::POSITION_OUTPUT &&
-            preg_match('/(.+?)\s*(' . preg_quote(self::OUTPUT_END_TAG) . ')/As',
+            preg_match('/(.+?)\s*(' .
+            preg_quote(self::OUTPUT_END_TAG_TRIM) . '|' .
+            preg_quote(self::OUTPUT_END_TAG) . ')/As',
                 $this->source, $match, null, $this->cursor)
         ) {
             $this->cursor += strlen($match[1]);
