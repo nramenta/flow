@@ -5,7 +5,6 @@ namespace Flow;
 class Parser
 {
     protected $stream;
-    protected $name;
     protected $extends;
     protected $blocks;
     protected $currentBlock;
@@ -19,7 +18,6 @@ class Parser
     public function __construct(TokenStream $stream)
     {
         $this->stream  = $stream;
-        $this->name    = $stream->getName();
         $this->extends = null;
         $this->blocks  = array();
 
@@ -48,16 +46,11 @@ class Parser
         $this->autoEscape = array(false);
     }
 
-    public function getName()
-    {
-        return $this->name;
-    }
-
     public function parse()
     {
         $body = $this->subparse();
         return new ModuleNode(
-            $this->name, $this->extends, $this->imports, $this->blocks,
+            $this->extends, $this->imports, $this->blocks,
             $this->macros, $body
         );
     }
@@ -81,7 +74,7 @@ class Parser
                             'unexpected "%s", expecting a valid tag',
                             str_replace("\n", '\n', $token->getValue())
                         ),
-                        $this->getName(), $token->getLine()
+                        $token
                     );
                 }
                 if (!is_null($test) && $token->test($test)) {
@@ -106,7 +99,7 @@ class Parser
                             str_replace("\n", '\n', $token->getValue()),
                             $expecting
                         ),
-                        $this->getName(), $token->getLine()
+                        $token
                     );
                 }
                 $this->stream->next();
@@ -122,7 +115,7 @@ class Parser
                             'missing construct handler "%s"',
                             $token->getValue()
                         ),
-                        $this->getName(), $token->getLine()
+                        $token
                     );
                 }
                 if (!is_null($node)) {
@@ -152,7 +145,7 @@ class Parser
             default:
                 throw new SyntaxError(
                     'parser ended up in unsupported state',
-                    $this->getName(), $line
+                    $this->stream->getCurrentToken()
                 );
             }
         }
@@ -200,9 +193,7 @@ class Parser
                 $end = true;
                 break;
             default:
-                throw new SyntaxError(
-                    'malformed if statement', $this->getName(), $line
-                );
+                throw new SyntaxError('malformed if statement', $token);
                 break;
             }
         }
@@ -251,18 +242,12 @@ class Parser
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $else = $this->subparse('endfor');
             if ($this->stream->next()->getValue() != 'endfor') {
-                throw new SyntaxError(
-                    'malformed for statement',
-                    $this->getName(), $line
-                );
+                throw new SyntaxError('malformed for statement', $token);
             }
         } elseif ($this->stream->getCurrentToken()->getValue() == 'endfor') {
             $else = null;
         } else {
-            throw new SyntaxError(
-                'malformed for statement',
-                $this->getName(), $line
-            );
+            throw new SyntaxError('malformed for statement', $token);
         }
         $this->stream->expect(Token::BLOCK_END_TYPE);
         return new ForNode($seq, $key, $value, $body, $else, $line);
@@ -271,10 +256,7 @@ class Parser
     protected function parseBreak($token)
     {
         if (!$this->inForLoop) {
-            throw new SyntaxError(
-                'unexpected break, not in for loop',
-                $this->getName(), $token->getLine()
-            );
+            throw new SyntaxError('unexpected break, not in for loop', $token);
         }
         $node = $this->parseIfModifier(
             $token, new BreakNode($token->getLine())
@@ -287,8 +269,7 @@ class Parser
     {
         if (!$this->inForLoop) {
             throw new SyntaxError(
-                'unexpected continue, not in for loop',
-                $this->getName(), $token->getLine()
+                'unexpected continue, not in for loop', $token
             );
         }
         $node = $this->parseIfModifier(
@@ -301,23 +282,18 @@ class Parser
     protected function parseExtends($token)
     {
         if (!is_null($this->extends)) {
-            throw new SyntaxError(
-                'multiple extends tags',
-                $this->getName(), $token->getLine()
-            );
+            throw new SyntaxError('multiple extends tags', $token);
         }
 
         if (!empty($this->currentBlock)) {
             throw new SyntaxError(
-                'cannot declare extends inside blocks',
-                $this->getName(), $token->getLine()
+                'cannot declare extends inside blocks', $token
             );
         }
 
         if ($this->inMacro) {
             throw new SyntaxError(
-                'cannot declare extends inside macros',
-                $this->getName(), $token->getLine()
+                'cannot declare extends inside macros', $token
             );
         }
 
@@ -353,10 +329,7 @@ class Parser
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $body = $this->subparse('endset');
             if ($this->stream->next()->getValue() != 'endset') {
-                throw new SyntaxError(
-                    'malformed set statement',
-                    $this->getName(), $token->getLine()
-                );
+                throw new SyntaxError('malformed set statement', $token);
             }
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $node = new SetNode($name, $attrs, $body, $token->getLine());
@@ -368,25 +341,21 @@ class Parser
     {
         if ($this->inMacro) {
             throw new SyntaxError(
-                'cannot declare blocks inside macros',
-                $this->getName(), $token->getLine()
+                'cannot declare blocks inside macros', $token
             );
         }
         $name = $this->parseName()->getValue();
         if (isset($this->blocks[$name])) {
             throw new SyntaxError(
                 sprintf('block "%s" already defined', $name),
-                $this->getName(), $token->getLine()
+                $token
             );
         }
         array_push($this->currentBlock, $name);
         if ($this->stream->consume(Token::BLOCK_END_TYPE)) {
             $body = $this->subparse('endblock');
             if ($this->stream->next()->getValue() != 'endblock') {
-                throw new SyntaxError(
-                    'malformed block statement',
-                    $this->getName(), $token->getLine()
-                );
+                throw new SyntaxError('malformed block statement', $token);
             }
             $this->parseName(false, $name);
         } else {
@@ -414,16 +383,12 @@ class Parser
     {
         if ($this->inMacro) {
             throw new SyntaxError(
-                'cannot call parent block inside macros',
-                $this->getName(), $token->getLine()
+                'cannot call parent block inside macros', $token
             );
         }
 
         if (empty($this->currentBlock)) {
-            throw new SyntaxError(
-                'parent must be inside a block',
-                $this->getName(), $token->getLine()
-            );
+            throw new SyntaxError('parent must be inside a block', $token);
         }
 
         $node = $this->parseIfModifier(
@@ -446,10 +411,7 @@ class Parser
     protected function parseEndAutoEscape($token)
     {
         if (empty($this->autoEscape)) {
-            throw new SyntaxError(
-                'unmatched endautoescape tag',
-                $this->getName(), $token->getLine()
-            );
+            throw new SyntaxError('unmatched endautoescape tag', $token);
         }
         array_pop($this->autoEscape);
         $this->stream->expect(Token::BLOCK_END_TYPE);
@@ -460,15 +422,13 @@ class Parser
     {
         if (!empty($this->currentBlock)) {
             throw new SyntaxError(
-                'cannot declare macros inside blocks',
-                $this->getName(), $token->getLine()
+                'cannot declare macros inside blocks', $token
             );
         }
 
         if ($this->inMacro) {
             throw new SyntaxError(
-                'cannot declare macros inside another macro',
-                $this->getName(), $token->getLine()
+                'cannot declare macros inside another macro', $token
             );
         }
 
@@ -477,7 +437,7 @@ class Parser
         if (isset($this->macros[$name])) {
             throw new SyntaxError(
                 sprintf('macro "%s" already defined', $name),
-                $this->getName(), $token->getLine()
+                $token
             );
         }
         $args = array();
@@ -501,10 +461,7 @@ class Parser
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $body = $this->subparse('endmacro');
         if ($this->stream->next()->getValue() != 'endmacro') {
-            throw new SyntaxError(
-                'malformed macro statement',
-                $this->getName(), $token->getLine()
-            );
+            throw new SyntaxError('malformed macro statement', $token);
         }
         $this->stream->consume(Token::NAME_TYPE, $name);
         $this->stream->expect(Token::BLOCK_END_TYPE);
@@ -794,7 +751,7 @@ class Parser
                         'unexpected "%s", expecting an expression',
                         str_replace("\n", '\n', $token->getValue())
                     ),
-                    $this->getName(), $token->getLine()
+                    $token
                 );
             }
         }
@@ -843,7 +800,7 @@ class Parser
                     'unexpected "%s", expecting an expression',
                     str_replace("\n", '\n', $token->getValue())
                 ),
-                $this->getName(), $token->getLine()
+                $token
             );
         }
         return $this->parsePostfixExpression($node);

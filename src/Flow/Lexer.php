@@ -6,6 +6,7 @@ class Lexer
 {
     protected $source;
     protected $line;
+    protected $char;
     protected $cursor;
     protected $position;
     protected $queue;
@@ -39,11 +40,11 @@ class Lexer
     const REGEX_OPERATOR = '/and\b|xor\b|or\b|not\b|in\b|
         =>|<>|<=?|>=?|[!=]==|[!=]?=|\.\.|[\[\]().,%*\/+|?:\-@~]/Ax';
 
-    public function __construct($name, $source)
+    public function __construct($source)
     {
-        $this->name     = $name;
         $this->source   = preg_replace("/(\r\n|\r|\n)/", "\n", $source);
         $this->line     = 1;
+        $this->char     = 1;
         $this->cursor   = 0;
         $this->position = self::POSITION_TEXT;
         $this->queue    = array();
@@ -51,13 +52,13 @@ class Lexer
         $this->trim     = false;
     }
 
-    public function tokenize()
+    public function tokenize($stream = true)
     {
         do {
             $tokens[] = $token = $this->next();
         } while ($token->getType() !== Token::EOF_TYPE);
 
-        return new TokenStream($this->name, $tokens);
+        return $stream ? new TokenStream($tokens) : $tokens;
     }
 
     protected function next()
@@ -67,7 +68,7 @@ class Lexer
         }
 
         if ($this->cursor >= $this->end) {
-            return Token::tokenEOF('', $this->line);
+            return Token::tokenEOF('', $this->line, $this->char);
         }
 
         switch ($this->position) {
@@ -86,6 +87,16 @@ class Lexer
         }
 
         return $this->next();
+    }
+
+    public function adjustLineChar($string)
+    {
+        if (($nl = substr_count($string, "\n")) > 0) {
+            $this->line += $nl;
+            $this->char = strlen($string) - strrpos($string, "\n");
+        } else {
+            $this->char += strlen($string);
+        }
     }
 
     protected function lexText()
@@ -108,16 +119,13 @@ class Lexer
                 $text = preg_replace("/^[ \t]*\n?/", '', $text);
                 $this->trim = false;
             }
-            $tokens[] = Token::tokenText($text, $this->line);
-            $this->line += substr_count($text, "\n");
+            $tokens[] = Token::tokenText($text, $this->line, $this->char);
+            $this->adjustLineChar($text);
             $this->cursor = $this->end;
             return $tokens;
         }
 
         $this->cursor += strlen($match[0]);
-
-        $line = $this->line;
-        $this->line += substr_count($match[0], "\n");
 
         // text first
         $text  = $match[1];
@@ -128,17 +136,15 @@ class Lexer
                 $text = preg_replace("/^[ \t]*\n?/", '', $text);
                 $this->trim = false;
             }
-            if ($token == self::COMMENT_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
-            } elseif ($token == self::BLOCK_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
-            } elseif ($token == self::OUTPUT_START_TAG_TRIM) {
-                $tokens[] = Token::tokenText(rtrim($text, " \t"), $line);
-            } else {
-                $tokens[] = Token::tokenText($text, $line);
+            if ($token == self::COMMENT_START_TAG_TRIM ||
+                $token == self::BLOCK_START_TAG_TRIM ||
+                $token == self::OUTPUT_START_TAG_TRIM) {
+                $text = rtrim($text, " \t");
             }
-            $line += substr_count($text, "\n");
+            $tokens[] = Token::tokenText($text, $this->line, $this->char);
         }
+
+        $this->adjustLineChar($match[1]);
 
         switch ($token) {
 
@@ -153,44 +159,49 @@ class Lexer
                     $this->trim = true;
                 }
                 $this->cursor += strlen($match[0]);
-                $this->line += substr_count($match[0], "\n");
+                $this->adjustLineChar($match[0]);
             }
             break;
 
         case self::BLOCK_START_TAG_TRIM:
         case self::BLOCK_START_TAG:
-            if (preg_match('/\s*raw\s*(' .
+            if (preg_match('/(\s*raw\s*)(' .
                 preg_quote(self::BLOCK_END_TAG_TRIM) . '|' .
                 preg_quote(self::BLOCK_END_TAG) . ')(.*?)(' .
                 preg_quote(self::BLOCK_START_TAG_TRIM) . '|' .
-                preg_quote(self::BLOCK_START_TAG) . ')\s*endraw\s*(' .
+                preg_quote(self::BLOCK_START_TAG) . ')(\s*endraw\s*)(' .
                 preg_quote(self::BLOCK_END_TAG_TRIM) . '|' .
                 preg_quote(self::BLOCK_END_TAG) . ')/As',
                     $this->source, $match, null, $this->cursor)
             ) {
-                $raw = $match[2];
-                if ($match[1] == self::BLOCK_END_TAG_TRIM) {
+                $raw = $match[3];
+                if ($match[2] == self::BLOCK_END_TAG_TRIM) {
                     $raw = preg_replace("/^[ \t]*\n?/", '', $raw);
                 }
-                if ($match[3] == self::BLOCK_START_TAG_TRIM) {
+                if ($match[4] == self::BLOCK_START_TAG_TRIM) {
                     $raw = rtrim($raw, " \t");
                 }
-                if ($match[4] == self::BLOCK_END_TAG_TRIM) {
+                if ($match[6] == self::BLOCK_END_TAG_TRIM) {
                     $this->trim = true;
                 }
+                $before = $token . $match[1] . $match[2];
+                $after  = $match[3] . $match[4] . $match[5] . $match[6];
                 $this->cursor += strlen($match[0]);
-                $this->line += substr_count($match[0], "\n");
-                $tokens[] = Token::tokenText($raw, $line);
+                $this->adjustLineChar($before);
+                $tokens[] = Token::tokenText($raw, $this->line, $this->char);
+                $this->adjustLineChar($after);
                 $this->position = self::POSITION_TEXT;
             } else {
-                $tokens[] = Token::tokenBlockStart($token, $line);
+                $tokens[] = Token::tokenBlockStart($token, $this->line, $this->char);
+                $this->adjustLineChar($token);
                 $this->position = self::POSITION_BLOCK;
             }
             break;
 
         case self::OUTPUT_START_TAG_TRIM:
         case self::OUTPUT_START_TAG:
-            $tokens[] = Token::tokenOutputStart($token, $line);
+            $tokens[] = Token::tokenOutputStart($token, $this->line, $this->char);
+            $this->adjustLineChar($token);
             $this->position = self::POSITION_OUTPUT;
             break;
 
@@ -201,89 +212,102 @@ class Lexer
 
     protected function lexBlock()
     {
+        $tokens = array();
         $match = null;
 
-        if (preg_match('/\s*(' .
+        if (preg_match('/(\s*)(' .
             preg_quote(self::BLOCK_END_TAG_TRIM) . '|' .
             preg_quote(self::BLOCK_END_TAG) . ')/A',
                 $this->source, $match, null, $this->cursor)
         ) {
-            if ($match[1] == self::BLOCK_END_TAG_TRIM) {
+            if ($match[2] == self::BLOCK_END_TAG_TRIM) {
                 $this->trim = true;
             }
             $this->cursor += strlen($match[0]);
-            $line = $this->line;
-            $this->line += substr_count($match[0], "\n");
+            $this->adjustLineChar($match[1]);
+            $tokens[] = Token::tokenBlockEnd($match[2], $this->line, $this->char);
+            $this->adjustLineChar($match[2]);
             $this->position = self::POSITION_TEXT;
-            return array(Token::tokenBlockEnd($match[1], $line));
+
+            return $tokens;
         }
         return $this->lexExpression();
     }
 
     protected function lexOutput()
     {
+        $tokens = array();
         $match = null;
 
-        if (preg_match('/\s*(' .
+        if (preg_match('/(\s*)(' .
             preg_quote(self::OUTPUT_END_TAG_TRIM) . '|' .
             preg_quote(self::OUTPUT_END_TAG) . ')/A',
                 $this->source, $match, null, $this->cursor)
         ) {
-            if ($match[1] == self::OUTPUT_END_TAG_TRIM) {
+            if ($match[2] == self::OUTPUT_END_TAG_TRIM) {
                 $this->trim = true;
             }
             $this->cursor += strlen($match[0]);
-            $line = $this->line;
-            $this->line += substr_count($match[0], "\n");
+            $this->adjustLineChar($match[1]);
+            $tokens[] = Token::tokenOutputEnd($match[2], $this->line, $this->char);
+            $this->adjustLineChar($match[2]);
             $this->position = self::POSITION_TEXT;
-            return array(Token::tokenOutputEnd($match[1], $line));
+
+            return $tokens;
         }
         return $this->lexExpression();
     }
 
     protected function lexExpression()
     {
+        $tokens = array();
         $match = null;
 
         // eat whitespace
         if (preg_match('/\s+/A', $this->source, $match, null, $this->cursor)) {
             $this->cursor += strlen($match[0]);
-            $this->line += substr_count($match[0], "\n");
+            $this->adjustLineChar($match[0]);
         }
 
         if (preg_match(self::REGEX_NUMBER, $this->source, $match, null,
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            return array(Token::tokenNumber(
-                str_replace('_', '', $match[0]), $this->line)
-            );
+            $number = str_replace('_', '', $match[0]);
+            $tokens[] = Token::tokenNumber($number, $this->line, $this->char);
+            $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_OPERATOR, $this->source, $match, null,
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            return array(Token::tokenOperator($match[0], $this->line));
+            $operator = $match[0];
+            $tokens[] = Token::tokenOperator($operator, $this->line, $this->char);
+            $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_CONSTANT, $this->source, $match, null,
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            return array(Token::tokenConstant($match[0], $this->line));
+            $constant = $match[0];
+            $tokens[] = Token::tokenConstant($constant, $this->line, $this->char);
+            $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_NAME, $this->source, $match, null,
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            return array(Token::tokenName($match[0], $this->line));
+            $name = $match[0];
+            $tokens[] = Token::tokenName($name, $this->line, $this->char);
+            $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_STRING, $this->source, $match, null,
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            $this->line += substr_count($match[0], "\n");
-            $value = stripcslashes(substr($match[0], 1, strlen($match[0]) - 2));
-            return array(Token::tokenString($value, $this->line));
+            $string = stripcslashes(substr($match[0], 1, strlen($match[0]) - 2));
+            $tokens[] = Token::tokenString($string, $this->line, $this->char);
+            $this->adjustLineChar($match[0]);
 
         } elseif ($this->position == self::POSITION_BLOCK &&
             preg_match('/(.+?)\s*(' .
@@ -293,60 +317,63 @@ class Lexer
         ) {
             // a catch-all text token
             $this->cursor += strlen($match[1]);
-            $line = $this->line;
-            $this->line += substr_count($match[1], "\n");
-            return array(Token::tokenText($match[1], $line));
+            $text = $match[1];
+            $tokens[] = Token::tokenText($text, $this->line, $this->char);
+            $this->adjustLineChar($match[1]);
 
         } elseif ($this->position == self::POSITION_OUTPUT &&
             preg_match('/(.+?)\s*(' . preg_quote(self::OUTPUT_END_TAG) . ')/As',
                 $this->source, $match, null, $this->cursor)
         ) {
             $this->cursor += strlen($match[1]);
-            $line = $this->line;
-            $this->line += substr_count($match[1], "\n");
-            return array(Token::tokenText($match[1], $line));
+            $text = $match[1];
+            $tokens[] = Token::tokenText($text, $this->line, $this->char);
+            $this->adjustLineChar($match[1]);
 
         } else {
             $text = substr($this->source, $this->cursor);
             $this->cursor += $this->end;
-            $line = $this->line;
-            $this->line += substr_count($text, "\n");
-            return array(Token::tokenText($text, $line));
+            $tokens[] = Token::tokenText($text, $this->line, $this->char);
+            $this->adjustLineChar($text);
         }
+
+        return $tokens;
     }
 }
 
 class SyntaxError extends \Exception
 {
-    public function __construct($message, $name, $line)
+    protected $token;
+
+    public function __construct($message, $token)
     {
-        parent::__construct($message . ' in ' . $name . ' line ' . $line);
+        $this->token = $token;
+        parent::__construct($message . ' in line ' . $token->getLine() . ' char ' . $token->getChar());
+    }
+
+    public function setMessage($message)
+    {
+        $this->message = $message;
+        return $this;
     }
 }
 
 class TokenStream
 {
-    protected $name;
     protected $tokens;
     protected $currentToken;
     protected $queue;
     protected $cursor;
     protected $eos;
 
-    public function __construct($name, array $tokens)
+    public function __construct(array $tokens)
     {
-        $this->name = $name;
         $this->tokens = $tokens;
         $this->currentToken = null;
         $this->queue = array();
         $this->cursor = 0;
         $this->eos = false;
         $this->next();
-    }
-
-    public function getName()
-    {
-        return $this->name;
     }
 
     public function next($queue = true)
@@ -399,17 +426,14 @@ class TokenStream
                 $expecting = '"' . $secondary . '"';
             }
             if ($token->getType() === Token::EOF_TYPE) {
-                throw new SyntaxError(
-                    'unexpected end of file',
-                    $this->name, $token->getLine() - 1
-                );
+                throw new SyntaxError('unexpected end of file', $token);
             } else {
                 throw new SyntaxError(
                     sprintf(
                         'unexpected "%s", expecting %s',
                         str_replace("\n", '\n', $token->getValue()), $expecting
                     ),
-                    $this->name, $token->getLine()
+                    $token
                 );
             }
         }
@@ -461,6 +485,7 @@ class Token
     protected $type;
     protected $value;
     protected $line;
+    protected $char;
 
     const EOF_TYPE          = -1;
     const TEXT_TYPE         = 0;
@@ -474,11 +499,12 @@ class Token
     const OPERATOR_TYPE     = 8;
     const CONSTANT_TYPE     = 9;
 
-    public function __construct($type, $value, $line)
+    public function __construct($type, $value, $line, $char)
     {
         $this->type  = $type;
         $this->value = $value;
         $this->line  = $line;
+        $this->char  = $char;
     }
 
     public static function getTypeAsString($type, $canonical = false)
@@ -597,64 +623,69 @@ class Token
         return $this->line;
     }
 
+    public function getChar()
+    {
+        return $this->char;
+    }
+
     public function __toString()
     {
         return $this->getValue();
     }
 
-    public static function tokenEOF($value, $line)
+    public static function tokenEOF($value, $line, $char)
     {
-        return new self(self::EOF_TYPE, $value, $line);
+        return new self(self::EOF_TYPE, $value, $line, $char);
     }
 
-    public static function tokenText($value, $line)
+    public static function tokenText($value, $line, $char)
     {
-        return new self(self::TEXT_TYPE, $value, $line);
+        return new self(self::TEXT_TYPE, $value, $line, $char);
     }
 
-    public static function tokenBlockStart($value, $line)
+    public static function tokenBlockStart($value, $line, $char)
     {
-        return new self(self::BLOCK_START_TYPE, $value, $line);
+        return new self(self::BLOCK_START_TYPE, $value, $line, $char);
     }
 
-    public static function tokenOutputStart($value, $line)
+    public static function tokenOutputStart($value, $line, $char)
     {
-        return new self(self::OUTPUT_START_TYPE, $value, $line);
+        return new self(self::OUTPUT_START_TYPE, $value, $line, $char);
     }
 
-    public static function tokenBlockEnd($value, $line)
+    public static function tokenBlockEnd($value, $line, $char)
     {
-        return new self(self::BLOCK_END_TYPE, $value, $line);
+        return new self(self::BLOCK_END_TYPE, $value, $line, $char);
     }
 
-    public static function tokenOutputEnd($value, $line)
+    public static function tokenOutputEnd($value, $line, $char)
     {
-        return new self(self::OUTPUT_END_TYPE, $value, $line);
+        return new self(self::OUTPUT_END_TYPE, $value, $line, $char);
     }
 
-    public static function tokenName($value, $line)
+    public static function tokenName($value, $line, $char)
     {
-        return new self(self::NAME_TYPE, $value, $line);
+        return new self(self::NAME_TYPE, $value, $line, $char);
     }
 
-    public static function tokenNumber($value, $line)
+    public static function tokenNumber($value, $line, $char)
     {
-        return new self(self::NUMBER_TYPE, $value, $line);
+        return new self(self::NUMBER_TYPE, $value, $line, $char);
     }
 
-    public static function tokenString($value, $line)
+    public static function tokenString($value, $line, $char)
     {
-        return new self(self::STRING_TYPE, $value, $line);
+        return new self(self::STRING_TYPE, $value, $line, $char);
     }
 
-    public static function tokenOperator($value, $line)
+    public static function tokenOperator($value, $line, $char)
     {
-        return new self(self::OPERATOR_TYPE, $value, $line);
+        return new self(self::OPERATOR_TYPE, $value, $line, $char);
     }
 
-    public static function tokenConstant($value, $line)
+    public static function tokenConstant($value, $line, $char)
     {
-        return new self(self::CONSTANT_TYPE, $value, $line);
+        return new self(self::CONSTANT_TYPE, $value, $line, $char);
     }
 }
 

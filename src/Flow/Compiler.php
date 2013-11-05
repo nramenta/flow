@@ -33,14 +33,14 @@ class Compiler
         $repr = $this->raw(var_export($repr, true), $indent);
     }
 
-    public function compile($target, $indent = 0)
+    public function compile($name, $target, $indent = 0)
     {
         if (!($this->fp = fopen($target, 'wb'))) {
             throw new \RuntimeException(
                 'unable to create target file: ' . $target
             );
         }
-        $this->node->compile($this, $indent);
+        $this->node->compile($name, $this, $indent);
         fclose($this->fp);
     }
 
@@ -131,20 +131,16 @@ class NodeList extends Node
     }
 }
 
-class ModuleNode extends Node
+class ModuleNode
 {
-    protected $name;
     protected $extends;
     protected $imports;
     protected $blocks;
     protected $macros;
     protected $body;
 
-    public function __construct($name, $extends, $imports, $blocks, $macros,
-        $body)
+    public function __construct($extends, $imports, $blocks, $macros, $body)
     {
-        parent::__construct(0);
-        $this->name = $name;
         $this->extends = $extends;
         $this->imports = $imports;
         $this->blocks = $blocks;
@@ -152,20 +148,20 @@ class ModuleNode extends Node
         $this->body = $body;
     }
 
-    public function compile($compiler, $indent = 0)
+    public function compile($module, $compiler, $indent = 0)
     {
-        $class = Loader::CLASS_PREFIX . md5($this->name);
+        $class = Loader::CLASS_PREFIX . md5($module);
 
         $compiler->raw("<?php\n");
         $compiler->raw(
-            '// ' . $this->name . ' ' . gmdate('Y-m-d H:i:s T', time()) .
+            '// ' . $module . ' ' . gmdate('Y-m-d H:i:s T', time()) .
             "\n", $indent
         );
         $compiler->raw("class $class extends \\Flow\\Template\n", $indent);
         $compiler->raw("{\n", $indent);
 
         $compiler->raw('const NAME = ', $indent + 1);
-        $compiler->repr($this->name);
+        $compiler->repr($module);
         $compiler->raw(";\n\n");
 
         $compiler->raw(
@@ -203,7 +199,7 @@ class ModuleNode extends Node
         // imports constructor
         if (!empty($this->imports)) {
             $compiler->raw('$this->imports = array(' . "\n", $indent + 2);
-            foreach ($this->imports as $module => $import) {
+            foreach ($this->imports as $import) {
                 $import->compile($compiler, $indent + 3);
             }
             $compiler->raw(");\n", $indent + 2);
@@ -240,7 +236,7 @@ class ModuleNode extends Node
         $compiler->raw($compiler->getTraceInfo(true) . ";\n");
 
         $compiler->raw("}\n");
-        $compiler->raw('// end of ' . $this->name . "\n");
+        $compiler->raw('// end of ' . $module . "\n");
     }
 }
 

@@ -154,10 +154,14 @@ class Loader
         }
 
         if ($compile) {
-            $lexer    = new Lexer($path, $adapter->getContents($path));
-            $parser   = new Parser($lexer->tokenize());
-            $compiler = new Compiler($parser->parse());
-            $compiler->compile($target);
+            try {
+                $lexer    = new Lexer($adapter->getContents($path));
+                $parser   = new Parser($lexer->tokenize());
+                $compiler = new Compiler($parser->parse());
+                $compiler->compile($path, $target);
+            } catch (SyntaxError $e) {
+                throw $e->setMessage($path . ': ' . $e->getMessage());
+            }
         }
 
         return $this;
@@ -211,10 +215,14 @@ class Loader
             }
 
             if ($compile) {
-                $lexer    = new Lexer($path, $adapter->getContents($path));
-                $parser   = new Parser($lexer->tokenize());
-                $compiler = new Compiler($parser->parse());
-                $compiler->compile($target);
+                try {
+                    $lexer    = new Lexer($adapter->getContents($path));
+                    $parser   = new Parser($lexer->tokenize());
+                    $compiler = new Compiler($parser->parse());
+                    $compiler->compile($path, $target);
+                } catch (SyntaxError $e) {
+                    throw $e->setMessage($path . ': ' . $e->getMessage());
+                }
             }
             require_once $target;
         }
@@ -241,7 +249,7 @@ class Loader
         }
 
         try {
-            $lexer    = new Lexer($path, $adapter->getContents($path));
+            $lexer    = new Lexer($adapter->getContents($path));
             $parser   = new Parser($lexer->tokenize());
             $compiler = new Compiler($parser->parse());
         } catch (\Exception $e) {
