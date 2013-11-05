@@ -1091,7 +1091,6 @@ class MacroExpression extends Expression
         }
         if (isset($this->module)) {
             $compiler->raw(
-                //'), $context, $macros, $this->imports + $imports)'
                 '), $context, $macros, $imports)'
             );
         } else {
