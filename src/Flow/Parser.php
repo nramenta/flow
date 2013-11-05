@@ -246,11 +246,23 @@ class Parser
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $body = $this->subparse(array('else', 'endfor'));
         $this->inForLoop--;
-        if ($this->stream->next()->getValue() == 'else') {
+        $this->stream->next();
+        if ($this->stream->getCurrentToken()->getValue() == 'else') {
             $this->stream->expect(Token::BLOCK_END_TYPE);
-            $else = $this->subparse('endfor', true);
-        } else {
+            $else = $this->subparse('endfor');
+            if ($this->stream->next()->getValue() != 'endfor') {
+                throw new SyntaxError(
+                    'malformed for statement',
+                    $this->getName(), $line
+                );
+            }
+        } elseif ($this->stream->getCurrentToken()->getValue() == 'endfor') {
             $else = null;
+        } else {
+            throw new SyntaxError(
+                'malformed for statement',
+                $this->getName(), $line
+            );
         }
         $this->stream->expect(Token::BLOCK_END_TYPE);
         return new ForNode($seq, $key, $value, $body, $else, $line);
@@ -339,7 +351,13 @@ class Parser
             $this->stream->expect(Token::BLOCK_END_TYPE);
         } else {
             $this->stream->expect(Token::BLOCK_END_TYPE);
-            $body = $this->subparse('endset', true);
+            $body = $this->subparse('endset');
+            if ($this->stream->next()->getValue() != 'endset') {
+                throw new SyntaxError(
+                    'malformed set statement',
+                    $this->getName(), $token->getLine()
+                );
+            }
             $this->stream->expect(Token::BLOCK_END_TYPE);
             $node = new SetNode($name, $attrs, $body, $token->getLine());
         }
@@ -363,7 +381,13 @@ class Parser
         }
         array_push($this->currentBlock, $name);
         if ($this->stream->consume(Token::BLOCK_END_TYPE)) {
-            $body = $this->subparse('endblock', true);
+            $body = $this->subparse('endblock');
+            if ($this->stream->next()->getValue() != 'endblock') {
+                throw new SyntaxError(
+                    'malformed block statement',
+                    $this->getName(), $token->getLine()
+                );
+            }
             $this->parseName(false, $name);
         } else {
             $expr = $this->parseExpression();
@@ -475,7 +499,13 @@ class Parser
             $this->stream->expect(Token::OPERATOR_TYPE, ')');
         }
         $this->stream->expect(Token::BLOCK_END_TYPE);
-        $body = $this->subparse('endmacro', true);
+        $body = $this->subparse('endmacro');
+        if ($this->stream->next()->getValue() != 'endmacro') {
+            throw new SyntaxError(
+                'malformed macro statement',
+                $this->getName(), $token->getLine()
+            );
+        }
         $this->stream->consume(Token::NAME_TYPE, $name);
         $this->stream->expect(Token::BLOCK_END_TYPE);
         $this->macros[$name] = new MacroNode(
