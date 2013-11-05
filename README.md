@@ -19,7 +19,7 @@ configuration is:
 ```
 {
     "require": {
-        "flow/flow": "@stable"
+        "flow/flow": "0.6.*"
     }
 }
 ```
