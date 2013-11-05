@@ -56,7 +56,7 @@ class Lexer
     {
         do {
             $tokens[] = $token = $this->next();
-        } while ($token->getType() !== Token::EOF_TYPE);
+        } while ($token->getType() !== Token::EOF);
 
         return $stream ? new TokenStream($tokens) : $tokens;
     }
@@ -388,7 +388,7 @@ class TokenStream
 
         $this->currentToken = $token;
 
-        $this->eos = ($token->getType() === Token::EOF_TYPE);
+        $this->eos = ($token->getType() === Token::EOF);
 
         return $old;
     }
@@ -415,7 +415,7 @@ class TokenStream
         $token = $this->getCurrentToken();
         if (is_null($secondary) && !is_int($primary)) {
             $secondary = $primary;
-            $primary = Token::NAME_TYPE;
+            $primary = Token::NAME;
         }
         if (!$token->test($primary, $secondary)) {
             if (is_null($secondary)) {
@@ -425,7 +425,7 @@ class TokenStream
             } else {
                 $expecting = '"' . $secondary . '"';
             }
-            if ($token->getType() === Token::EOF_TYPE) {
+            if ($token->getType() === Token::EOF) {
                 throw new SyntaxError('unexpected end of file', $token);
             } else {
                 throw new SyntaxError(
@@ -487,17 +487,17 @@ class Token
     protected $line;
     protected $char;
 
-    const EOF_TYPE          = -1;
-    const TEXT_TYPE         = 0;
-    const BLOCK_START_TYPE  = 1;
-    const OUTPUT_START_TYPE = 2;
-    const BLOCK_END_TYPE    = 3;
-    const OUTPUT_END_TYPE   = 4;
-    const NAME_TYPE         = 5;
-    const NUMBER_TYPE       = 6;
-    const STRING_TYPE       = 7;
-    const OPERATOR_TYPE     = 8;
-    const CONSTANT_TYPE     = 9;
+    const EOF          = -1;
+    const TEXT         = 0;
+    const BLOCK_START  = 1;
+    const OUTPUT_START = 2;
+    const BLOCK_END    = 3;
+    const OUTPUT_END   = 4;
+    const NAME         = 5;
+    const NUMBER       = 6;
+    const STRING       = 7;
+    const OPERATOR     = 8;
+    const CONSTANT     = 9;
 
     public function __construct($type, $value, $line, $char)
     {
@@ -514,38 +514,38 @@ class Token
         }
 
         switch ($type) {
-        case self::EOF_TYPE:
-            $name = 'EOF_TYPE';
+        case self::EOF:
+            $name = 'EOF';
             break;
-        case self::TEXT_TYPE:
-            $name = 'TEXT_TYPE';
+        case self::TEXT:
+            $name = 'TEXT';
             break;
-        case self::BLOCK_START_TYPE:
-            $name = 'BLOCK_START_TYPE';
+        case self::BLOCK_START:
+            $name = 'BLOCK_START';
             break;
-        case self::OUTPUT_START_TYPE:
-            $name = 'OUTPUT_START_TYPE';
+        case self::OUTPUT_START:
+            $name = 'OUTPUT_START';
             break;
-        case self::BLOCK_END_TYPE:
-            $name = 'BLOCK_END_TYPE';
+        case self::BLOCK_END:
+            $name = 'BLOCK_END';
             break;
-        case self::OUTPUT_END_TYPE:
-            $name = 'OUTPUT_END_TYPE';
+        case self::OUTPUT_END:
+            $name = 'OUTPUT_END';
             break;
-        case self::NAME_TYPE:
-            $name = 'NAME_TYPE';
+        case self::NAME:
+            $name = 'NAME';
             break;
-        case self::NUMBER_TYPE:
-            $name = 'NUMBER_TYPE';
+        case self::NUMBER:
+            $name = 'NUMBER';
             break;
-        case self::STRING_TYPE:
-            $name = 'STRING_TYPE';
+        case self::STRING:
+            $name = 'STRING';
             break;
-        case self::OPERATOR_TYPE:
-            $name = 'OPERATOR_TYPE';
+        case self::OPERATOR:
+            $name = 'OPERATOR';
             break;
-        case self::CONSTANT_TYPE:
-            $name = 'CONSTANT_TYPE';
+        case self::CONSTANT:
+            $name = 'CONSTANT';
             break;
         }
         return $canonical ? (__CLASS__ . '::' . $name) : $name;
@@ -554,37 +554,37 @@ class Token
     public static function getTypeError($type)
     {
         switch ($type) {
-        case self::EOF_TYPE:
+        case self::EOF:
             $name = 'end of file';
             break;
-        case self::TEXT_TYPE:
+        case self::TEXT:
             $name = 'text type';
             break;
-        case self::BLOCK_START_TYPE:
+        case self::BLOCK_START:
             $name = 'block start (either "{%" or "{%-")';
             break;
-        case self::OUTPUT_START_TYPE:
+        case self::OUTPUT_START:
             $name = 'block start (either "{{" or "{{-")';
             break;
-        case self::BLOCK_END_TYPE:
+        case self::BLOCK_END:
             $name = 'block end (either "%}" or "-%}")';
             break;
-        case self::OUTPUT_END_TYPE:
+        case self::OUTPUT_END:
             $name = 'block end (either "}}" or "-}}")';
             break;
-        case self::NAME_TYPE:
+        case self::NAME:
             $name = 'name type';
             break;
-        case self::NUMBER_TYPE:
+        case self::NUMBER:
             $name = 'number type';
             break;
-        case self::STRING_TYPE:
+        case self::STRING:
             $name = 'string type';
             break;
-        case self::OPERATOR_TYPE:
+        case self::OPERATOR:
             $name = 'operator type';
             break;
-        case self::CONSTANT_TYPE:
+        case self::CONSTANT:
             $name = 'constant type (true, false, or null)';
             break;
         }
@@ -595,7 +595,7 @@ class Token
     {
         if (is_null($values) && !is_int($type)) {
             $values = $type;
-            $type = self::NAME_TYPE;
+            $type = self::NAME;
         }
 
         return ($this->type === $type) && (
@@ -635,57 +635,57 @@ class Token
 
     public static function tokenEOF($value, $line, $char)
     {
-        return new self(self::EOF_TYPE, $value, $line, $char);
+        return new self(self::EOF, $value, $line, $char);
     }
 
     public static function tokenText($value, $line, $char)
     {
-        return new self(self::TEXT_TYPE, $value, $line, $char);
+        return new self(self::TEXT, $value, $line, $char);
     }
 
     public static function tokenBlockStart($value, $line, $char)
     {
-        return new self(self::BLOCK_START_TYPE, $value, $line, $char);
+        return new self(self::BLOCK_START, $value, $line, $char);
     }
 
     public static function tokenOutputStart($value, $line, $char)
     {
-        return new self(self::OUTPUT_START_TYPE, $value, $line, $char);
+        return new self(self::OUTPUT_START, $value, $line, $char);
     }
 
     public static function tokenBlockEnd($value, $line, $char)
     {
-        return new self(self::BLOCK_END_TYPE, $value, $line, $char);
+        return new self(self::BLOCK_END, $value, $line, $char);
     }
 
     public static function tokenOutputEnd($value, $line, $char)
     {
-        return new self(self::OUTPUT_END_TYPE, $value, $line, $char);
+        return new self(self::OUTPUT_END, $value, $line, $char);
     }
 
     public static function tokenName($value, $line, $char)
     {
-        return new self(self::NAME_TYPE, $value, $line, $char);
+        return new self(self::NAME, $value, $line, $char);
     }
 
     public static function tokenNumber($value, $line, $char)
     {
-        return new self(self::NUMBER_TYPE, $value, $line, $char);
+        return new self(self::NUMBER, $value, $line, $char);
     }
 
     public static function tokenString($value, $line, $char)
     {
-        return new self(self::STRING_TYPE, $value, $line, $char);
+        return new self(self::STRING, $value, $line, $char);
     }
 
     public static function tokenOperator($value, $line, $char)
     {
-        return new self(self::OPERATOR_TYPE, $value, $line, $char);
+        return new self(self::OPERATOR, $value, $line, $char);
     }
 
     public static function tokenConstant($value, $line, $char)
     {
-        return new self(self::CONSTANT_TYPE, $value, $line, $char);
+        return new self(self::CONSTANT, $value, $line, $char);
     }
 }
 
