@@ -730,7 +730,9 @@ class Parser
         case Token::CONSTANT:
         case Token::OPERATOR:
             if (($name = $this->parseName(false)) !== null) {
-                $node = new NameExpression($name->getValue(), $token->getLine());
+                $node = new NameExpression(
+                    $name->getValue(), $token->getLine()
+                );
                 break;
             }
         default:

@@ -188,11 +188,15 @@ class Lexer
                 $after  = $match[3] . $match[4] . $match[5] . $match[6];
                 $this->cursor += strlen($match[0]);
                 $this->adjustLineChar($before);
-                $tokens[] = new Token(Token::TEXT, $raw, $this->line, $this->char);
+                $tokens[] = new Token(
+                    Token::TEXT, $raw, $this->line, $this->char
+                );
                 $this->adjustLineChar($after);
                 $this->position = self::POSITION_TEXT;
             } else {
-                $tokens[] = new Token(Token::BLOCK_START, $token, $this->line, $this->char);
+                $tokens[] = new Token(
+                    Token::BLOCK_START, $token, $this->line, $this->char
+                );
                 $this->adjustLineChar($token);
                 $this->position = self::POSITION_BLOCK;
             }
@@ -200,7 +204,9 @@ class Lexer
 
         case self::OUTPUT_START_TRIM:
         case self::OUTPUT_START:
-            $tokens[] = new Token(Token::OUTPUT_START, $token, $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::OUTPUT_START, $token, $this->line, $this->char
+            );
             $this->adjustLineChar($token);
             $this->position = self::POSITION_OUTPUT;
             break;
@@ -225,7 +231,9 @@ class Lexer
             }
             $this->cursor += strlen($match[0]);
             $this->adjustLineChar($match[1]);
-            $tokens[] = new Token(Token::BLOCK_END, $match[2], $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::BLOCK_END, $match[2], $this->line, $this->char
+            );
             $this->adjustLineChar($match[2]);
             $this->position = self::POSITION_TEXT;
 
@@ -249,7 +257,9 @@ class Lexer
             }
             $this->cursor += strlen($match[0]);
             $this->adjustLineChar($match[1]);
-            $tokens[] = new Token(Token::OUTPUT_END, $match[2], $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::OUTPUT_END, $match[2], $this->line, $this->char
+            );
             $this->adjustLineChar($match[2]);
             $this->position = self::POSITION_TEXT;
 
@@ -274,7 +284,9 @@ class Lexer
         ) {
             $this->cursor += strlen($match[0]);
             $number = str_replace('_', '', $match[0]);
-            $tokens[] = new Token(Token::NUMBER, $number, $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::NUMBER, $number, $this->line, $this->char
+            );
             $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_OPERATOR, $this->source, $match, null,
@@ -282,7 +294,9 @@ class Lexer
         ) {
             $this->cursor += strlen($match[0]);
             $operator = $match[0];
-            $tokens[] = new Token(Token::OPERATOR, $operator, $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::OPERATOR, $operator, $this->line, $this->char
+            );
             $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_CONSTANT, $this->source, $match, null,
@@ -290,7 +304,9 @@ class Lexer
         ) {
             $this->cursor += strlen($match[0]);
             $constant = $match[0];
-            $tokens[] = new Token(Token::CONSTANT, $constant, $this->line, $this->char);
+            $tokens[] = new Token(
+                Token::CONSTANT, $constant, $this->line, $this->char
+            );
             $this->adjustLineChar($match[0]);
 
         } elseif (preg_match(self::REGEX_NAME, $this->source, $match, null,
@@ -305,8 +321,10 @@ class Lexer
             $this->cursor)
         ) {
             $this->cursor += strlen($match[0]);
-            $string = stripcslashes(substr($match[0], 1, strlen($match[0]) - 2));
-            $tokens[] = new Token(Token::STRING, $string, $this->line, $this->char);
+            $string = stripcslashes(substr($match[0], 1, strlen($match[0])-2));
+            $tokens[] = new Token(
+                Token::STRING, $string, $this->line, $this->char
+            );
             $this->adjustLineChar($match[0]);
 
         } elseif ($this->position == self::POSITION_BLOCK &&
@@ -350,12 +368,16 @@ class SyntaxError extends \Exception
     public function __construct($message, $token)
     {
         $this->token = $token;
-        parent::__construct($message . ' in line ' . $token->getLine() . ' char ' . $token->getChar());
+
+        $line = $token->getLine();
+        $char = $token->getChar();
+        parent::__construct("$message in line $line char $char");
     }
 
     public function setMessage($message)
     {
         $this->message = $message;
+
         return $this;
     }
 }
@@ -563,16 +585,20 @@ class Token
             $name = 'text type';
             break;
         case self::BLOCK_START:
-            $name = 'block start (either "' . Lexer::BLOCK_START . '" or "' . Lexer::BLOCK_START_TRIM . '")';
+            $name = 'block start (either "' . Lexer::BLOCK_START . '" or "' .
+                Lexer::BLOCK_START_TRIM . '")';
             break;
         case self::OUTPUT_START:
-            $name = 'block start (either "' . Lexer::OUTPUT_START . '" or "' . Lexer::OUTPUT_START_TRIM . '")';
+            $name = 'block start (either "' . Lexer::OUTPUT_START . '" or "' .
+                Lexer::OUTPUT_START_TRIM . '")';
             break;
         case self::BLOCK_END:
-            $name = 'block end (either "' . Lexer::BLOCK_END . '" or "' . Lexer::BLOCK_END_TRIM . '")';
+            $name = 'block end (either "' . Lexer::BLOCK_END . '" or "' .
+                Lexer::BLOCK_END_TRIM . '")';
             break;
         case self::OUTPUT_END:
-            $name = 'block end (either "' . Lexer::OUTPUT_END . '" or "' . Lexer::OUTPUT_END_TRIM . '")';
+            $name = 'block end (either "' . Lexer::OUTPUT_END . '" or "' .
+                Lexer::OUTPUT_END_TRIM . '")';
             break;
         case self::NAME:
             $name = 'name type';
