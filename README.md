@@ -161,9 +161,9 @@ and the closing `}}` tags:
 
     Hello, {{ username }}
 
-    {{ "Welcome back, " .. username }}
+    {{ "Welcome back, " ~ username }}
 
-    {{ "Two plus two equals " .. 2 + 2 }}
+    {{ "Two plus two equals " ~ 2 + 2 }}
 
 ## Literals
 
@@ -192,11 +192,11 @@ Strings can either be double quoted or single quoted; both recognize escape
 sequence characters. There are no support for variable extrapolation. Use string
 concatenation instead:
 
-    {{ "This is a string " .. 'This is also a string' }}
+    {{ "This is a string " ~ 'This is also a string' }}
 
 You can also join two or more strings or scalars using the join operator:
 
-    {{ "Welcome," ~ user.name }}
+    {{ "Welcome," .. user.name }}
 
 The join operator uses a single space character to join strings together.
 
@@ -263,21 +263,22 @@ The `in` operator works with arrays, iterators and plain objects:
 For iterators and plain objects, the `in` operator first converts them using a
 simple `(array)` type conversion.
 
-Use `..` (a double dot) to concatenate between two or more scalars as strings:
+Use `~` (tilde) to concatenate between two or more scalars as strings:
 
-    {{ "Hello," .. " World!" }}
+    {{ "Hello," ~ " World!" }}
 
 String concatenation has a lower precedence than arithmetic operators:
 
-    {{ "1 + 1 = " .. 1 + 1 .. " and everything is OK again!" }}
+    {{ "1 + 1 = " ~ 1 + 1 ~ " and everything is OK again!" }}
 
 Will yield
 
     1 + 1 = 2 and everything is OK again!
 
-Use `~` to join two or more scalars as string using a single space character:
+Use `..` (a double dot) to join two or more scalars as string using a single
+space character:
 
-    {{ "Welcome," ~ user.name }}
+    {{ "Welcome," .. user.name }}
 
 String output, concatenations and joins coerce scalar values into strings.
 
@@ -544,7 +545,7 @@ tags, extends tags, parent tags, set tags, and include tags.
 
 You can use the ternary operator if you need branching inside an expression:
 
-    {{ error ? '<p>' .. error .. '</p>' :  '<p>success!</p>' }}
+    {{ error ? '<p>' ~ error ~ '</p>' :  '<p>success!</p>' }}
 
 The ternary operator has the lowest precedence in an expression.
 
@@ -605,7 +606,7 @@ next iteration, respectively. The following will print "1 2 3":
 It is sometimes unavoidable to set values to variables and object or array
 attributes; use the `set` construct:
 
-    {% set fullname = user.firstname .. ' ' .. user.lastname %}
+    {% set fullname = user.firstname .. user.lastname %}
 
     {% set user.fullname = fullname %}
 
@@ -724,7 +725,7 @@ once the macro returns.
 Macros are dynamically scoped. They inherit the calling context:
 
     {% macro greet %}
-    <p>{{ "Hello," ~ name }}</p>
+    <p>{{ "Hello," .. name }}</p>
     {% endmacro %}
 
     {% set name = "Joe" %}

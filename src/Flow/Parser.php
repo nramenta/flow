@@ -647,7 +647,7 @@ class Parser
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseJoinExpression();
-        while ($this->stream->consume(Token::OPERATOR_TYPE, '..')) {
+        while ($this->stream->consume(Token::OPERATOR_TYPE, '~')) {
             $right = $this->parseJoinExpression();
             $left = new ConcatExpression($left, $right, $line);
             $line = $this->stream->getCurrentToken()->getLine();
@@ -659,7 +659,7 @@ class Parser
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseAddExpression();
-        while ($this->stream->consume(Token::OPERATOR_TYPE, '~')) {
+        while ($this->stream->consume(Token::OPERATOR_TYPE, '..')) {
             $right = $this->parseAddExpression();
             $left = new JoinExpression($left, $right, $line);
             $line = $this->stream->getCurrentToken()->getLine();
