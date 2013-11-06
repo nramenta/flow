@@ -237,11 +237,11 @@ class Parser
         $this->stream->expect(Token::BLOCK_END);
         $body = $this->subparse(array('else', 'endfor'));
         $this->inForLoop--;
-        $this->stream->next();
         if ($this->stream->getCurrentToken()->getValue() == 'else') {
+            $this->stream->next();
             $this->stream->expect(Token::BLOCK_END);
             $else = $this->subparse('endfor');
-            if ($this->stream->next()->getValue() != 'endfor') {
+            if ($this->stream->getCurrentToken()->getValue() != 'endfor') {
                 throw new SyntaxError('malformed for statement', $token);
             }
         } elseif ($this->stream->getCurrentToken()->getValue() == 'endfor') {
@@ -249,6 +249,7 @@ class Parser
         } else {
             throw new SyntaxError('malformed for statement', $token);
         }
+        $this->stream->next();
         $this->stream->expect(Token::BLOCK_END);
         return new ForNode($seq, $key, $value, $body, $else, $line);
     }
