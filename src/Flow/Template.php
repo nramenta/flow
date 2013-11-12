@@ -679,14 +679,15 @@ function truncate($obj = null, $length = 255, $preserve_words = false,
 {
     $obj = strval($obj);
 
+    $len = strlen($obj);
+
+    if ($length >= $len) return $obj;
+
     $truncated = $preserve_words ?
         preg_replace('/\s+?(\S+)?$/', '', substr($obj, 0, $length + 1)) :
         substr($obj, 0, $length);
 
-    if (strlen($obj) > $length) {
-        $truncated .= $hellip;
-    }
-    return $truncated;
+    return $truncated . $hellip;
 }
 
 function unescape($obj = null)
