@@ -34,7 +34,7 @@ class Lexer
 
     const REGEX_CONSTANT = '/true\b | false\b | null\b/Ax';
     const REGEX_NAME     = '/[a-zA-Z_][a-zA-Z0-9_]*/A';
-    const REGEX_NUMBER   = '/[0-9][0-9_]*(?:\.[0-9][0-9_]*)?/A';
+    const REGEX_NUMBER   = '/[\-]?[0-9][0-9_]*(?:\.[0-9][0-9_]*)?/A';
     const REGEX_STRING   = '/(?:"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|
         \'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\')/Axsmu';
     const REGEX_OPERATOR = '/and\b|xor\b|or\b|not\b|in\b|
