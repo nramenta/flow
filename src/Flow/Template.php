@@ -529,7 +529,7 @@ function is_divisible_by($obj = null, $number = null)
     if (!isset($number)) return false;
     if (!is_numeric($obj) || !is_numeric($number)) return false;
     if ($number == 0) return false;
-    return ($obj % $number == 0);
+    return fmod($obj, $number) == 0;
 }
 
 function is_empty($obj = null)

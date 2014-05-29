@@ -699,9 +699,13 @@ class DivExpression extends BinaryExpression
 
 class ModExpression extends BinaryExpression
 {
-    public function operator()
+    public function compile($compiler, $indent = 0)
     {
-        return '%';
+        $compiler->raw('fmod(', $indent);
+        $this->left->compile($compiler);
+        $compiler->raw(', ');
+        $this->right->compile($compiler);
+        $compiler->raw(')');
     }
 }
 
