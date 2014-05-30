@@ -30,7 +30,7 @@ abstract class Template
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error extending %s (%s) from %s line %d',
-                $template, $e->getMessage(), static::NAME,
+                var_export($template, true), $e->getMessage(), static::NAME,
                 $this->getLineTrace($e)
             ));
         }
@@ -43,7 +43,7 @@ abstract class Template
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error including %s (%s) from %s line %d',
-                $template, $e->getMessage(), static::NAME,
+                var_export($template, true), $e->getMessage(), static::NAME,
                 $this->getLineTrace($e)
             ));
         }
@@ -56,7 +56,7 @@ abstract class Template
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error importing %s (%s) from %s line %d',
-                $template, $e->getMessage(), static::NAME,
+                var_export($template, true), $e->getMessage(), static::NAME,
                 $this->getLineTrace($e)
             ));
         }

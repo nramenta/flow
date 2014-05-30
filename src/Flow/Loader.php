@@ -119,6 +119,10 @@ class Loader
 
     public function compile($template, $mode = null)
     {
+        if (!is_string($template)) {
+            throw new \InvalidArgumentException('string expected');
+        }
+
         $source  = $this->options['source'];
         $adapter = $this->options['adapter'];
 
@@ -171,6 +175,10 @@ class Loader
     {
         if ($template instanceof Template) {
             return $template;
+        }
+
+        if (!is_string($template)) {
+            throw new \InvalidArgumentException('string expected');
         }
 
         $source  = $this->options['source'];
@@ -234,6 +242,10 @@ class Loader
 
     public function isValid($template, &$error = null)
     {
+        if (!is_string($template)) {
+            throw new \InvalidArgumentException('string expected');
+        }
+
         $source  = $this->options['source'];
         $adapter = $this->options['adapter'];
 
