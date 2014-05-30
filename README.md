@@ -665,8 +665,8 @@ templates:
 
     {% extends "path/to/layout.html" %}
 
-The template extension mechanism is fully dynamic; you can use variables or wrap
-it in conditionals just like any other statement:
+The template extension mechanism is fully dynamic with some caveats. You can use
+context variables or wrap it in conditionals just like any other statement:
 
     {% extends layout if some_condition %}
 
@@ -674,8 +674,58 @@ You can also use the ternary operator:
 
     {% extends some_condition ? custom_layout : "default_layout.html" %}
 
+You cannot however use expressions and variables that are calculated inside the
+template before the `extends` tag. This is because the extends tag is the first
+thing a template will evaluate regardless of where its position is in the
+template. This is also why it's best to put your `extends` tags somewhere at the
+top of your templates. For example, the following will not work:
+
+    {% set extend_template = true %}
+    {% extends "parent.html" if extend_template %}
+
+The following will also not work because `tpl` is a value calculated inside the
+template before the `extends` tag:
+
+    {% set tpl = "parent.html" %}
+    {% extends tpl %}
+
+If however the `extend_template` or the `tpl` variables are context variables
+that already exist before the template loads, then the two examples above will
+work as expected.
+
 It is a syntax error to declare more than one `extends` tag per template or to
 declare an `extends` tag anywhere but at the top level scope.
+
+### Parameterized template extension
+
+Using the `set` tag to override a context variable before extending a parent
+template will not work. This is because an `extends` tag is the first thing a
+template will evaluate regardless of where its position is in the template and
+extending a template will discard the current extending template's layout (i.e.,
+everything outside `block` tags) in favor of the extended template's layout.
+
+You can however pass an array to override a parent template's context when
+extending it. With a parent template:
+
+    {# this is in parent.html #}
+    {% if show %}
+    TADA!
+    {% endif %}
+
+And a child template:
+
+    {# this is in child.html #}
+    {% extends "parent.html" with ['show' => true] %}
+
+Rendering the child template will produce:
+
+    TADA!
+
+Likewise, you can't use variables created using the `set` tag inside the array
+parameter used with the `extends` tag. For example, the following will not work:
+
+    {% set foo = "BAR" %}
+    {% extends "parent.html" with [some_string => foo] %}
 
 ## Parent
 

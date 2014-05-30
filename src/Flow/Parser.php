@@ -298,9 +298,19 @@ class Parser
             );
         }
 
+        $parent = $this->parseExpression();
+        $params = null;
+
+        if ($this->stream->consume(Token::NAME, 'with')) {
+            $this->stream->expect(Token::OPERATOR, '[');
+            $params = $this->parseArrayExpression();
+            $this->stream->expect(Token::OPERATOR, ']');
+        }
+
         $this->extends = $this->parseIfModifier(
-            $token, new ExtendsNode($this->parseExpression(), $token->getLine())
+            $token, new ExtendsNode($parent, $params, $token->getLine())
         );
+
         $this->stream->expect(Token::BLOCK_END);
         return null;
     }

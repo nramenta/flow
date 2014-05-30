@@ -270,11 +270,13 @@ class BlockNode extends Node
 class ExtendsNode extends Node
 {
     protected $parent;
+    protected $params;
 
-    public function __construct($parent, $line)
+    public function __construct($parent, $params, $line)
     {
         parent::__construct($line);
         $this->parent = $parent;
+        $this->params = $params;
     }
 
     public function compile($compiler, $indent = 0)
@@ -285,6 +287,11 @@ class ExtendsNode extends Node
         $compiler->raw(');' . "\n");
 
         $compiler->raw('if (isset($this->parent)) {' . "\n", $indent);
+        if ($this->params instanceof ArrayExpression) {
+            $compiler->raw('$context = ', $indent + 1);
+            $this->params->compile($compiler);
+            $compiler->raw(' + $context;' . "\n");
+        }
         $compiler->raw(
             'return $this->parent->display' .
             '($context, $blocks + $this->blocks, $macros + $this->macros,' .
