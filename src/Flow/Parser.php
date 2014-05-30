@@ -496,9 +496,18 @@ class Parser
     protected function parseInclude($token)
     {
         $include = $this->parseExpression();
+        $params = null;
+
+        if ($this->stream->consume(Token::NAME, 'with')) {
+            $this->stream->expect(Token::OPERATOR, '[');
+            $params = $this->parseArrayExpression();
+            $this->stream->expect(Token::OPERATOR, ']');
+        }
+
         $node = $this->parseIfModifier(
-            $token, new IncludeNode($include, $token->getLine())
+            $token, new IncludeNode($include, $params, $token->getLine())
         );
+
         $this->stream->expect(Token::BLOCK_END);
         return $node;
     }

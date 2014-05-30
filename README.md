@@ -849,6 +849,16 @@ PHP runtime limit on recursion: either the allowed memory allocation size is
 reached, thereby producing a fatal runtime error, or the number of maximum
 nesting level is reached, if you're using xdebug.
 
+### Parameterized template inclusion
+
+As with template extension, you can pass an array as the overriding context for
+the included template:
+
+    {% include "footer.html" with ['year' => current_year] %}
+
+The array parameter will override any variables in the current context but only
+for the duration of the include.
+
 ## Path resolution
 
 Paths referenced in `extends`, `include`, and `import` tags can either be

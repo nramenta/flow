@@ -1113,11 +1113,13 @@ class MacroExpression extends Expression
 class IncludeNode extends Node
 {
     protected $include;
+    protected $params;
 
-    public function __construct($include, $line)
+    public function __construct($include, $params, $line)
     {
         parent::__construct($line);
         $this->include = $include;
+        $this->params = $params;
     }
 
     public function compile($compiler, $indent = 0)
@@ -1125,7 +1127,14 @@ class IncludeNode extends Node
         $compiler->addTraceInfo($this, $indent);
         $compiler->raw('$this->loadInclude(', $indent);
         $this->include->compile($compiler);
-        $compiler->raw(')->display($context);' . "\n");
+        $compiler->raw(')->display(');
+
+        if ($this->params instanceof ArrayExpression) {
+            $this->params->compile($compiler);
+            $compiler->raw(' + ');
+        }
+
+        $compiler->raw('$context);' . "\n");
     }
 }
 
