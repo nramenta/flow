@@ -50,7 +50,7 @@ class Loader
         );
 
         if (!isset($options['adapter'])) {
-            $options['adapter'] = new FileAdapter($options['source']);
+            $options['adapter'] = new Adapter\FileAdapter($options['source']);
         }
 
         if (!($target = realpath($options['target'])) || !is_dir($target)) {
@@ -97,7 +97,6 @@ class Loader
     public function resolvePath($template, $from = '')
     {
         $source = implode('/', $this->normalizePath($this->options['source']));
-
 
         $parts = $this->normalizePath(
             $source . '/' . dirname($from) . '/' . $template
@@ -269,43 +268,6 @@ class Loader
             return false;
         }
         return true;
-    }
-}
-
-interface Adapter
-{
-    public function isReadable($path);
-    public function lastModified($path);
-    public function getContents($path);
-}
-
-class FileAdapter implements Adapter
-{
-    protected $source;
-
-    public function __construct($source)
-    {
-        if (!($this->source = realpath($source)) || !is_dir($this->source)) {
-            throw new \RuntimeException(sprintf(
-                'source directory %s not found',
-                $source
-            ));
-        }
-    }
-
-    public function isReadable($path)
-    {
-        return is_readable($this->source. '/' . $path);
-    }
-
-    public function lastModified($path)
-    {
-        return filemtime($this->source. '/' . $path);
-    }
-
-    public function getContents($path)
-    {
-        return file_get_contents($this->source . '/' . $path);
     }
 }
 
