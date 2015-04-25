@@ -19,9 +19,11 @@ class Helper
         } elseif ($places >= 10) {
             $obj = number_format($obj / 1073741824, $decimals, $dec, $sep);
             return "$obj GB";
-        } else {
+        } elseif ($places >= 4) {
             $obj = number_format($obj / 1024, $decimals, $dec, $sep);
             return "$obj KB";
+        } else {
+          return "$obj";
         }
     }
 
@@ -198,7 +200,7 @@ class Helper
 
     public static function range($lower = null, $upper = null, $step = 1)
     {
-        return new RangeIterator(intval($lower), intval($upper), intval($step));
+        return new Helper\RangeIterator(intval($lower), intval($upper), intval($step));
     }
 
     public static function repeat($obj, $times = 2)
