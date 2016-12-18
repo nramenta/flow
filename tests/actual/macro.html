@@ -1,6 +1,6 @@
-{%- macro bold(text="Hello, World!") -%}
+{% macro bold(text="Hello, World!") %}
 <b>{{ text }}</b>
-{%- endmacro -%}
+{% endmacro %}
 
 {{ @bold }}
 {{ @bold("Foo") }}
