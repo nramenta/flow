@@ -1,9 +1,8 @@
 <?php
 
-namespace Tests;
+namespace Flow;
 
 use PHPUnit_Framework_TestCase;
-use Flow\Helper;
 
 class HelperTest extends PHPUnit_Framework_TestCase
 {
