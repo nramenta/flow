@@ -3,6 +3,7 @@
 namespace Flow\Node;
 
 use Flow\Node;
+use Flow\NodeList;
 
 class SetNode extends Node
 {
