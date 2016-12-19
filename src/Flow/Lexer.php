@@ -2,16 +2,16 @@
 
 namespace Flow;
 
-class Lexer
+final class Lexer
 {
-    protected $source;
-    protected $line;
-    protected $char;
-    protected $cursor;
-    protected $position;
-    protected $queue;
-    protected $end;
-    protected $trim;
+    private $source;
+    private $line;
+    private $char;
+    private $cursor;
+    private $position;
+    private $queue;
+    private $end;
+    private $trim;
 
     const BLOCK_START      = '{%';
     const BLOCK_START_TRIM = '{%-';
@@ -52,16 +52,18 @@ class Lexer
         $this->trim     = false;
     }
 
-    public function tokenize($stream = true)
+    public function tokenize() : TokenStream
     {
+        $tokens = [];
+
         do {
             $tokens[] = $token = $this->next();
         } while ($token->getType() !== Token::EOF);
 
-        return $stream ? new TokenStream($tokens) : $tokens;
+        return new TokenStream($tokens);
     }
 
-    protected function next()
+    private function next() : Token
     {
         if (!empty($this->queue)) {
             return array_shift($this->queue);
@@ -89,7 +91,7 @@ class Lexer
         return $this->next();
     }
 
-    public function adjustLineChar($string)
+    private function adjustLineChar($string)
     {
         if (($nl = substr_count($string, "\n")) > 0) {
             $this->line += $nl;
@@ -99,7 +101,7 @@ class Lexer
         }
     }
 
-    protected function lexText()
+    private function lexText() : array
     {
         $match = null;
         $tokens = array();
@@ -216,7 +218,7 @@ class Lexer
         return $tokens;
     }
 
-    protected function lexBlock()
+    private function lexBlock() : array
     {
         $tokens = array();
         $match = null;
@@ -242,7 +244,7 @@ class Lexer
         return $this->lexExpression();
     }
 
-    protected function lexOutput()
+    private function lexOutput() : array
     {
         $tokens = array();
         $match = null;
@@ -268,7 +270,7 @@ class Lexer
         return $this->lexExpression();
     }
 
-    protected function lexExpression()
+    private function lexExpression() : array
     {
         $tokens = array();
         $match = null;
