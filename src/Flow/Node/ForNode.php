@@ -34,7 +34,9 @@ class ForNode extends Node
 
         $else = false;
         if (!is_null($this->else)) {
-            $compiler->raw('if (!Flow\Helper::is_empty(', $indent);
+            $compiler->raw('if (Flow\Helper::is_iterable(', $indent);
+            $this->seq->compile($compiler);
+            $compiler->raw(') && !Flow\Helper::is_empty(');
             $this->seq->compile($compiler);
             $compiler->raw(")) {\n");
             $else = true;

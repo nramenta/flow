@@ -80,6 +80,11 @@ class Helper
         return call_user_func_array('sprintf', func_get_args());
     }
 
+    public static function is_iterable($obj = null)
+    {
+        return is_array($obj) || ($obj instanceof \Traversable);
+    }
+
     public static function is_divisible_by($obj = null, $number = null)
     {
         if (!isset($number)) return false;

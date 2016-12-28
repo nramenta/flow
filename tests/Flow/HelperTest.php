@@ -78,6 +78,20 @@ class HelperTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Hello, World!', Helper::format('Hello, %s', 'World!'));
     }
 
+    public function test_is_iterable()
+    {
+        $this->assertTrue(Helper::is_iterable([1,2,3]));
+        $this->assertTrue(Helper::is_iterable(new \ArrayIterator([1,2,3])));
+
+        $this->assertFalse(Helper::is_iterable("hello world"));
+        $this->assertFalse(Helper::is_iterable(0));
+        $this->assertFalse(Helper::is_iterable(100));
+        $this->assertFalse(Helper::is_iterable(3.14));
+        $this->assertFalse(Helper::is_iterable(null));
+        $this->assertFalse(Helper::is_iterable(true));
+        $this->assertFalse(Helper::is_iterable(false));
+    }
+
     public function test_is_divisible_by()
     {
         $this->assertTrue(Helper::is_divisible_by(10, 1));
