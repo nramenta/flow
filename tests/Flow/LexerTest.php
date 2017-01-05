@@ -6,13 +6,36 @@ use PHPUnit_Framework_TestCase;
 
 class LexerTest extends PHPUnit_Framework_TestCase
 {
-    public function test_tokenize_returns_TokenStream()
+    public function tokenProvider()
     {
-        $source = 'foobar';
+        $paths = [];
 
-        $lexer = new Lexer($source);
+        $dir = new \DirectoryIterator(realpath(__DIR__ . '/../tokens/actual'));
 
-        $this->assertTrue($lexer->tokenize() instanceof TokenStream);
+        foreach ($dir as $file) {
+            if ($file->isFile()) {
+                $paths[] = [
+                    $file->getPathname(),
+                    realpath(__DIR__ . '/../tokens/expected/' . $file->getBasename('.html') . '.php'),
+                ];
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
+     * @dataProvider tokenProvider
+     */
+    public function test_tokenize_returns_TokenStream($actual, $expected)
+    {
+        $lexer = new Lexer(file_get_contents($actual));
+
+        $tokenStream = $lexer->tokenize();
+
+        $this->assertTrue($tokenStream instanceof TokenStream);
+
+        $this->assertEquals(include $expected, $tokenStream->getTokens());
     }
 }
 
