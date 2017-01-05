@@ -2,18 +2,18 @@
 
 namespace Flow;
 
-class Parser
+final class Parser
 {
-    protected $stream;
-    protected $extends;
-    protected $blocks;
-    protected $currentBlock;
-    protected $tags;
-    protected $inForLoop;
-    protected $macros;
-    protected $inMacro;
-    protected $imports;
-    protected $autoEscape;
+    private $stream;
+    private $extends;
+    private $blocks;
+    private $currentBlock;
+    private $tags;
+    private $inForLoop;
+    private $macros;
+    private $inMacro;
+    private $imports;
+    private $autoEscape;
 
     public function __construct(TokenStream $stream)
     {
@@ -46,7 +46,7 @@ class Parser
         $this->autoEscape = array(false);
     }
 
-    public function parse()
+    public function parse() : Module
     {
         $body = $this->subparse();
         return new Module(
@@ -55,7 +55,7 @@ class Parser
         );
     }
 
-    protected function subparse($test = null, $next = false)
+    private function subparse($test = null) : NodeList
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $nodes = array();
@@ -78,10 +78,6 @@ class Parser
                     );
                 }
                 if (!is_null($test) && $token->test($test)) {
-                    if (is_bool($next)) {
-                        $next = $next ? 1 : 0;
-                    }
-                    $this->stream->skip($next);
                     return new NodeList($nodes, $line);
                 }
 
@@ -152,7 +148,7 @@ class Parser
         return new NodeList($nodes, $line);
     }
 
-    protected function parseName($expect = true, $match = null)
+    private function parseName($expect = true, $match = null)
     {
         static $constants = array('true', 'false', 'null');
         static $operators = array('and', 'xor', 'or', 'not', 'in');
@@ -166,7 +162,7 @@ class Parser
         }
     }
 
-    protected function parseIf($token)
+    private function parseIf($token) : Node
     {
         $line = $token->getLine();
         $expr = $this->parseExpression();
@@ -200,7 +196,7 @@ class Parser
         return new Node\IfNode($tests, $else, $line);
     }
 
-    protected function parseIfModifier($token, $node)
+    private function parseIfModifier($token, $node) : Node
     {
         static $modifiers = array('if', 'unless');
 
@@ -222,7 +218,7 @@ class Parser
         return $node;
     }
 
-    protected function parseFor($token)
+    private function parseFor($token) : Node
     {
         $this->inForLoop++;
         $line = $token->getLine();
@@ -254,7 +250,7 @@ class Parser
         return new Node\ForNode($seq, $key, $value, $body, $else, $line);
     }
 
-    protected function parseBreak($token)
+    private function parseBreak($token) : Node
     {
         if (!$this->inForLoop) {
             throw new SyntaxError('unexpected break, not in for loop', $token);
@@ -266,7 +262,7 @@ class Parser
         return $node;
     }
 
-    protected function parseContinue($token)
+    private function parseContinue($token) : Node
     {
         if (!$this->inForLoop) {
             throw new SyntaxError(
@@ -280,7 +276,7 @@ class Parser
         return $node;
     }
 
-    protected function parseExtends($token)
+    private function parseExtends($token)
     {
         if (!is_null($this->extends)) {
             throw new SyntaxError('multiple extends tags', $token);
@@ -315,7 +311,7 @@ class Parser
         return null;
     }
 
-    protected function parseSet($token)
+    private function parseSet($token) : Node
     {
         $attrs = array();
         $name = $this->parseName()->getValue();
@@ -348,7 +344,7 @@ class Parser
         return $node;
     }
 
-    protected function parseBlock($token)
+    private function parseBlock($token) : Node
     {
         if ($this->inMacro) {
             throw new SyntaxError(
@@ -390,7 +386,7 @@ class Parser
         return new Node\BlockDisplayNode($name, $token->getLine());
     }
 
-    protected function parseParent($token)
+    private function parseParent($token) : Node
     {
         if ($this->inMacro) {
             throw new SyntaxError(
@@ -411,7 +407,7 @@ class Parser
         return $node;
     }
 
-    protected function parseAutoEscape($token)
+    private function parseAutoEscape($token)
     {
         $autoEscape = $this->stream->expect(array('on', 'off'))->getValue();
         $this->stream->expect(Token::BLOCK_END);
@@ -419,7 +415,7 @@ class Parser
         return null;
     }
 
-    protected function parseEndAutoEscape($token)
+    private function parseEndAutoEscape($token)
     {
         if (empty($this->autoEscape)) {
             throw new SyntaxError('unmatched endautoescape tag', $token);
@@ -429,7 +425,7 @@ class Parser
         return null;
     }
 
-    protected function parseMacro($token)
+    private function parseMacro($token)
     {
         if (!empty($this->currentBlock)) {
             throw new SyntaxError(
@@ -482,7 +478,7 @@ class Parser
         $this->inMacro = false;
     }
 
-    protected function parseImport($token)
+    private function parseImport($token)
     {
         $import = $this->parseExpression();
         $this->stream->expect(Token::NAME, 'as');
@@ -493,7 +489,7 @@ class Parser
         );
     }
 
-    protected function parseInclude($token)
+    private function parseInclude($token) : Node
     {
         $include = $this->parseExpression();
         $params = null;
@@ -512,12 +508,12 @@ class Parser
         return $node;
     }
 
-    protected function parseExpression()
+    private function parseExpression() : Expression
     {
         return $this->parseConditionalExpression();
     }
 
-    protected function parseConditionalExpression()
+    private function parseConditionalExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $expr1 = $this->parseXorExpression();
@@ -531,7 +527,7 @@ class Parser
         return $expr1;
     }
 
-    protected function parseXorExpression()
+    private function parseXorExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseOrExpression();
@@ -543,7 +539,7 @@ class Parser
         return $left;
     }
 
-    protected function parseOrExpression()
+    private function parseOrExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseAndExpression();
@@ -555,7 +551,7 @@ class Parser
         return $left;
     }
 
-    protected function parseAndExpression()
+    private function parseAndExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseNotExpression();
@@ -567,7 +563,7 @@ class Parser
         return $left;
     }
 
-    protected function parseNotExpression()
+    private function parseNotExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         if ($this->stream->consume(Token::OPERATOR, 'not')) {
@@ -577,7 +573,7 @@ class Parser
         return $this->parseInclusionExpression();
     }
 
-    protected function parseInclusionExpression()
+    private function parseInclusionExpression() : Expression
     {
         static $operators = array('not', 'in');
 
@@ -599,7 +595,7 @@ class Parser
         return $left;
     }
 
-    protected function parseCompareExpression()
+    private function parseCompareExpression() : Expression
     {
         static $operators = array(
             '!==', '===', '==', '!=', '<>', '<', '>', '>=', '<='
@@ -620,7 +616,7 @@ class Parser
         return new Expression\CompareExpression($expr, $ops, $line);
     }
 
-    protected function parseConcatExpression()
+    private function parseConcatExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseJoinExpression();
@@ -632,7 +628,7 @@ class Parser
         return $left;
     }
 
-    protected function parseJoinExpression()
+    private function parseJoinExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseAddExpression();
@@ -644,7 +640,7 @@ class Parser
         return $left;
     }
 
-    protected function parseAddExpression()
+    private function parseAddExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseSubExpression();
@@ -656,7 +652,7 @@ class Parser
         return $left;
     }
 
-    protected function parseSubExpression()
+    private function parseSubExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseMulExpression();
@@ -668,7 +664,7 @@ class Parser
         return $left;
     }
 
-    protected function parseMulExpression()
+    private function parseMulExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseDivExpression();
@@ -680,7 +676,7 @@ class Parser
         return $left;
     }
 
-    protected function parseDivExpression()
+    private function parseDivExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseModExpression();
@@ -692,7 +688,7 @@ class Parser
         return $left;
     }
 
-    protected function parseModExpression()
+    private function parseModExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $left = $this->parseUnaryExpression();
@@ -704,7 +700,7 @@ class Parser
         return $left;
     }
 
-    protected function parseUnaryExpression()
+    private function parseUnaryExpression() : Expression
     {
         if ($this->stream->test(Token::OPERATOR, array('-', '+'))) {
             switch ($this->stream->getCurrentToken()->getValue()) {
@@ -717,21 +713,21 @@ class Parser
         return $this->parsePrimaryExpression();
     }
 
-    protected function parseNegExpression()
+    private function parseNegExpression() : Expression
     {
         $token = $this->stream->next();
         $node = $this->parseUnaryExpression();
         return new Expression\NegExpression($node, $token->getLine());
     }
 
-    protected function parsePosExpression()
+    private function parsePosExpression() : Expression
     {
         $token = $this->stream->next();
         $node = $this->parseUnaryExpression();
         return new Expression\PosExpression($node, $token->getLine());
     }
 
-    protected function parsePrimaryExpression()
+    private function parsePrimaryExpression() : Expression
     {
         $token = $this->stream->getCurrentToken();
         switch ($token->getType()) {
@@ -780,7 +776,7 @@ class Parser
         return $this->parsePostfixExpression($node);
     }
 
-    protected function parseLiteralExpression()
+    private function parseLiteralExpression() : Expression
     {
         $token = $this->stream->getCurrentToken();
         switch ($token->getType()) {
@@ -828,7 +824,7 @@ class Parser
         return $this->parsePostfixExpression($node);
     }
 
-    protected function parseFunctionCallExpression($node)
+    private function parseFunctionCallExpression($node) : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $this->stream->expect(Token::OPERATOR, '(');
@@ -844,7 +840,7 @@ class Parser
         return new Expression\FunctionCallExpression($node, $args, $line);
     }
 
-    protected function parseMacroExpression($token)
+    private function parseMacroExpression($token) : Expression
     {
         static $constants = array('true', 'false', 'null');
         static $operators = array('and', 'xor', 'or', 'not', 'in');
@@ -882,7 +878,7 @@ class Parser
         return new Expression\MacroExpression($module, $name, $args, $token->getLine());
     }
 
-    protected function parseArrayExpression()
+    private function parseArrayExpression() : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $elements = array();
@@ -925,7 +921,7 @@ class Parser
         return new Expression\ArrayExpression($elements, $line);
     }
 
-    protected function parsePostfixExpression($node)
+    private function parsePostfixExpression($node) : Expression
     {
         $stop = false;
         while (!$stop &&
@@ -947,7 +943,7 @@ class Parser
         return $node;
     }
 
-    protected function parseAttributeExpression($node)
+    private function parseAttributeExpression($node) : Expression
     {
         $token = $this->stream->getCurrentToken();
         if ($this->stream->consume(Token::OPERATOR, '.')) {
@@ -975,7 +971,7 @@ class Parser
         return new Expression\AttributeExpression($node, $attr, $args, $token->getLine());
     }
 
-    protected function parseFilterExpression($node)
+    private function parseFilterExpression($node) : Expression
     {
         $line = $this->stream->getCurrentToken()->getLine();
         $filters = array();
