@@ -10,13 +10,13 @@ class LexerTest extends PHPUnit_Framework_TestCase
     {
         $paths = [];
 
-        $dir = new \DirectoryIterator(realpath(__DIR__ . '/../tokens/actual'));
+        $dir = new \DirectoryIterator(realpath(__DIR__ . '/../actual'));
 
         foreach ($dir as $file) {
             if ($file->isFile()) {
                 $paths[] = [
                     $file->getPathname(),
-                    realpath(__DIR__ . '/../tokens/expected/' . $file->getBasename('.html') . '.php'),
+                    realpath(__DIR__ . '/../tokens/' . $file->getBasename('.html') . '.php'),
                 ];
             }
         }
