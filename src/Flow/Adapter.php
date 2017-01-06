@@ -4,8 +4,8 @@ namespace Flow;
 
 interface Adapter
 {
-    public function isReadable($path);
-    public function lastModified($path);
-    public function getContents($path);
+    public function isReadable($path) : bool;
+    public function lastModified($path) : int;
+    public function getContents($path) : string;
 }
 

@@ -4,9 +4,9 @@ namespace Flow\Adapter;
 
 use Flow\Adapter;
 
-class FileAdapter implements Adapter
+final class FileAdapter implements Adapter
 {
-    protected $source;
+    private $source;
 
     public function __construct($source)
     {
@@ -18,17 +18,17 @@ class FileAdapter implements Adapter
         }
     }
 
-    public function isReadable($path)
+    public function isReadable($path) : bool
     {
         return is_readable($this->source. '/' . $path);
     }
 
-    public function lastModified($path)
+    public function lastModified($path) : int
     {
         return filemtime($this->source. '/' . $path);
     }
 
-    public function getContents($path)
+    public function getContents($path) : string
     {
         return file_get_contents($this->source . '/' . $path);
     }
