@@ -2,9 +2,9 @@
 
 namespace Flow;
 
-class NodeList extends Node
+final class NodeList extends Node
 {
-    protected $nodes;
+    private $nodes;
 
     public function __construct($nodes, $line)
     {
