@@ -2,11 +2,11 @@
 
 namespace Flow;
 
-class SyntaxError extends \Exception
+final class SyntaxError extends \Exception
 {
-    protected $token;
+    private $token;
 
-    public function __construct($message, $token)
+    public function __construct(string $message, Token $token)
     {
         $this->token = $token;
 
@@ -15,7 +15,7 @@ class SyntaxError extends \Exception
         parent::__construct("$message in line $line char $char");
     }
 
-    public function setMessage($message)
+    public function setMessage(string $message)
     {
         $this->message = $message;
 
