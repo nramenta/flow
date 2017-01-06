@@ -2,13 +2,13 @@
 
 namespace Flow;
 
-class Module
+final class Module
 {
-    protected $extends;
-    protected $imports;
-    protected $blocks;
-    protected $macros;
-    protected $body;
+    private $extends;
+    private $imports;
+    private $blocks;
+    private $macros;
+    private $body;
 
     public function __construct($extends, $imports, $blocks, $macros, $body)
     {
