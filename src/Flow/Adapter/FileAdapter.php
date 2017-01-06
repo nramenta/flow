@@ -18,17 +18,17 @@ final class FileAdapter implements Adapter
         }
     }
 
-    public function isReadable($path) : bool
+    public function isReadable(string $path) : bool
     {
         return is_readable($this->source. '/' . $path);
     }
 
-    public function lastModified($path) : int
+    public function lastModified(string $path) : int
     {
         return filemtime($this->source. '/' . $path);
     }
 
-    public function getContents($path) : string
+    public function getContents(string $path) : string
     {
         return file_get_contents($this->source . '/' . $path);
     }
