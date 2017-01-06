@@ -2,7 +2,7 @@
 
 namespace Flow;
 
-class Expression extends Node
+abstract class Expression extends Node
 {
 }
 

@@ -2,9 +2,9 @@
 
 namespace Flow;
 
-class Node
+abstract class Node
 {
-    protected $line;
+    private $line;
 
     public function __construct($line)
     {
@@ -21,8 +21,6 @@ class Node
         return $compiler->addTraceInfo($this, $indent);
     }
 
-    public function compile($compiler, $indent = 0)
-    {
-    }
+    abstract public function compile($compiler, $indent = 0);
 }
 
