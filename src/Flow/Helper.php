@@ -2,7 +2,7 @@
 
 namespace Flow;
 
-class Helper
+final class Helper
 {
     public static function abs($obj = null)
     {
