@@ -21,7 +21,7 @@ final class Token
     const OPERATOR     = 8;
     const CONSTANT     = 9;
 
-    public function __construct($type, $value, $line, $char)
+    public function __construct($type, $value, int $line, int $char)
     {
         $this->type  = $type;
         $this->value = $value;
