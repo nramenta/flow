@@ -2,12 +2,12 @@
 
 namespace Flow;
 
-class Compiler
+final class Compiler
 {
-    protected $fp;
-    protected $node;
-    protected $line;
-    protected $trace;
+    private $fp;
+    private $node;
+    private $line;
+    private $trace;
 
     public function __construct($node)
     {
@@ -30,7 +30,7 @@ class Compiler
 
     public function repr($repr, $indent = 0)
     {
-        $repr = $this->raw(var_export($repr, true), $indent);
+        $this->raw(var_export($repr, true), $indent);
     }
 
     public function compile($name, $target, $indent = 0)
