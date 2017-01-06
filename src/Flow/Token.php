@@ -2,12 +2,12 @@
 
 namespace Flow;
 
-class Token
+final class Token
 {
-    protected $type;
-    protected $value;
-    protected $line;
-    protected $char;
+    private $type;
+    private $value;
+    private $line;
+    private $char;
 
     const EOF          = -1;
     const TEXT         = 0;
@@ -29,7 +29,7 @@ class Token
         $this->char  = $char;
     }
 
-    public static function getTypeAsString($type, $canonical = false)
+    public static function getTypeAsString($type, $canonical = false) : string
     {
         if (is_string($type)) {
             return $canonical ? (__CLASS__ . '::' . $type) : $type;
@@ -73,7 +73,7 @@ class Token
         return $canonical ? (__CLASS__ . '::' . $name) : $name;
     }
 
-    public static function getTypeError($type)
+    public static function getTypeError($type) : string
     {
         switch ($type) {
         case self::EOF:
@@ -117,7 +117,7 @@ class Token
         return $name;
     }
 
-    public function test($type, $values = null)
+    public function test($type, $values = null) : bool
     {
         if (is_null($values) && !is_int($type)) {
             $values = $type;
@@ -139,22 +139,22 @@ class Token
         return $this->type;
     }
 
-    public function getValue()
+    public function getValue() : string
     {
         return $this->value;
     }
 
-    public function getLine()
+    public function getLine() : int
     {
         return $this->line;
     }
 
-    public function getChar()
+    public function getChar() : int
     {
         return $this->char;
     }
 
-    public function __toString()
+    public function __toString() : string
     {
         return $this->getValue();
     }
