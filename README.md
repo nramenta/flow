@@ -87,55 +87,6 @@ Two kinds of exceptions are thrown by Flow: `SyntaxError` for syntax errors, and
 Any reference to template files outside the `source` directory is considered to
 be an error.
 
-## Syntax checking
-
-Syntax checking can be done as following:
-
-```php
-<?php
-require 'path/to/src/Flow/Loader.php';
-use Flow\Loader;
-Loader::autoload();
-$flow = new Loader(array(
-    'source' => 'path/to/templates',
-    'target' => 'path/to/cache',
-));
-
-$file = 'my_template.html';
-
-if (!$flow->isValid($file, $error)) {
-    echo 'The template ' . $file . ' is not valid: ' . $error;
-}
-```
-
-The above example will check the template for errors without actually compiling
-it.
-
-## Compiling programatically
-
-It is possible to compile templates without loading and displaying them:
-
-```php
-<?php
-require 'path/to/src/Flow/Loader.php';
-use Flow\Loader;
-Loader::autoload();
-$flow = new Loader(array(
-    'source' => 'path/to/templates',
-    'target' => 'path/to/cache',
-));
-
-try {
-    $flow->compile('some_template.html');
-} catch (\Exception $e) {
-    // something went wrong!
-    die($e->getMessage());
-}
-```
-
-This is useful if your application needs to bulk-compile several templates or
-allows users to upload, create, or modify templates.
-
 ## Basic concepts
 
 Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly

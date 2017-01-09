@@ -4,6 +4,7 @@ require __DIR__ . '/../src/Flow/Loader.php';
 
 use Flow\Loader;
 use Flow\Helper;
+use Flow\Adapter\FileAdapter;
 
 Loader::autoload();
 
@@ -13,10 +14,14 @@ class OutputTest extends PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->flow = new Loader([
+        $options = [
             'source' => __DIR__ . '/actual',
             'target' => __DIR__ . '/cache',
-        ]);
+        ];
+
+        $source = new FileAdapter($options['source']);
+
+        $this->flow = new Loader($options, $source);
     }
 
     public function outputProvider()
