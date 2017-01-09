@@ -166,29 +166,5 @@ final class Loader
 
         return $this->cache[$class];
     }
-
-    public function isValid(string $template, &$error = null)
-    {
-        $path = $this->resolvePath($template);
-
-        $class = $this->getClassName($path);
-
-        if (!$this->source->isReadable($path)) {
-            throw new \RuntimeException(sprintf(
-                '%s is not a valid readable template',
-                $template
-            ));
-        }
-
-        try {
-            $lexer    = new Lexer($this->source->getContents($path));
-            $parser   = new Parser($lexer->tokenize());
-            $compiler = new Compiler($parser->parse());
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-            return false;
-        }
-        return true;
-    }
 }
 

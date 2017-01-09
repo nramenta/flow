@@ -61,7 +61,6 @@ class OutputTest extends PHPUnit_Framework_TestCase
     public function testOutput($data)
     {
         $expected = file_get_contents(__DIR__ . "/output/$data.html");
-        $this->assertTrue($this->flow->isValid("$data.html", $error), "$data.html: $error");
         $template = $this->flow->load("$data.html");
         $actual = $template->render();
         $this->assertEquals($expected, $actual);
