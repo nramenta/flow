@@ -91,6 +91,10 @@ final class Loader
     {
         $source = implode('/', $this->normalizePath($this->options['source']));
 
+        if (substr($template, 0, 1) == '/') {
+            $from = '';
+        }
+
         $parts = $this->normalizePath(
             $source . '/' . dirname($from) . '/' . $template
         );

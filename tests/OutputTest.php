@@ -65,5 +65,19 @@ class OutputTest extends PHPUnit_Framework_TestCase
         $actual = $template->render();
         $this->assertEquals($expected, $actual);
     }
+
+    public function testLoadTemplateFromAbsolutePath()
+    {
+        $template = $this->flow->load('includes/absolute.html');
+        $actual = $template->render();
+        $this->assertContains('absolute', $actual);
+    }
+
+    public function testLoadTemplateFromRelativePath()
+    {
+        $template = $this->flow->load('includes/relative.html');
+        $actual = $template->render();
+        $this->assertContains('relative', $actual);
+    }
 }
 
