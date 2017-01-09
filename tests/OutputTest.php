@@ -17,6 +17,7 @@ class OutputTest extends PHPUnit_Framework_TestCase
         $options = [
             'source' => __DIR__ . '/actual',
             'target' => __DIR__ . '/cache',
+            'mode'   => Loader::RECOMPILE_ALWAYS,
         ];
 
         $source = new FileAdapter($options['source']);
