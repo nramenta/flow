@@ -14,15 +14,11 @@ class OutputTest extends PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $options = [
-            'source' => __DIR__ . '/actual',
-            'target' => __DIR__ . '/cache',
-            'mode'   => Loader::RECOMPILE_ALWAYS,
-        ];
+        $source = new FileAdapter(__DIR__ . '/actual');
 
-        $source = new FileAdapter($options['source']);
+        $target = new FileAdapter(__DIR__ . '/cache');
 
-        $this->flow = new Loader($options, $source);
+        $this->flow = new Loader(Loader::RECOMPILE_ALWAYS, $source, $target);
     }
 
     public function outputProvider()
@@ -79,6 +75,15 @@ class OutputTest extends PHPUnit_Framework_TestCase
         $template = $this->flow->load('includes/relative.html');
         $actual = $template->render();
         $this->assertContains('relative', $actual);
+    }
+
+    public function testLoadTemplateOutsideSource()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('../outside.html resolves to a path outside source');
+
+        $template = $this->flow->load('../outside.html');
+        $actual = $template->render();
     }
 }
 

@@ -46,10 +46,11 @@ final class Parser
         $this->autoEscape = array(false);
     }
 
-    public function parse() : Module
+    public function parse($path, $class) : Module
     {
         $body = $this->subparse();
         return new Module(
+            $path, $class,
             $this->extends, $this->imports, $this->blocks,
             $this->macros, $body
         );

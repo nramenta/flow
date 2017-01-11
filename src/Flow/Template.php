@@ -25,10 +25,19 @@ abstract class Template
         $this->stack   = array();
     }
 
+    private function getPath($template)
+    {
+        if ($template{0} != '/') {
+            return dirname(static::NAME) . '/' . $template;
+        } else {
+            return $template;
+        }
+    }
+
     public function loadExtends($template)
     {
         try {
-            return $this->loader->load($template, static::NAME);
+            return $this->loader->load($this->getPath($template));
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error extending %s (%s) from %s line %d',
@@ -41,7 +50,7 @@ abstract class Template
     public function loadInclude($template)
     {
         try {
-            return $this->loader->load($template, static::NAME);
+            return $this->loader->load($this->getPath($template));
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error including %s (%s) from %s line %d',
@@ -54,7 +63,7 @@ abstract class Template
     public function loadImport($template)
     {
         try {
-            return $this->loader->load($template, static::NAME)->getMacros();
+            return $this->loader->load($this->getPath($template))->getMacros();
         } catch (\Exception $e) {
             throw new \RuntimeException(sprintf(
                 'error importing %s (%s) from %s line %d',

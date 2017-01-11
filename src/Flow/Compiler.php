@@ -4,27 +4,29 @@ namespace Flow;
 
 final class Compiler
 {
-    private $fp;
-    private $node;
+    private $result;
+    private $module;
     private $line;
     private $trace;
 
-    public function __construct($node)
+    public function __construct(Module $module)
     {
-        $this->node  = $node;
-        $this->line  = 1;
-        $this->trace = array();
+        $this->result = '';
+        $this->module = $module;
+        $this->line   = 1;
+        $this->trace  = array();
+    }
+
+    private function write($string)
+    {
+        $this->result .= $string;
+        return $this;
     }
 
     public function raw($raw, $indent = 0)
     {
         $this->line = $this->line + substr_count($raw, "\n");
-        if (!fwrite($this->fp, str_repeat(' ', 4 * $indent) . $raw)) {
-            throw new \RuntimeException(
-                'failed writing to file: ' .  $this->target
-            );
-        }
-
+        $this->write(str_repeat(' ', 4 * $indent) . $raw);
         return $this;
     }
 
@@ -33,15 +35,10 @@ final class Compiler
         $this->raw(var_export($repr, true), $indent);
     }
 
-    public function compile($name, $target, $indent = 0)
+    public function compile()
     {
-        if (!($this->fp = fopen($target, 'wb'))) {
-            throw new \RuntimeException(
-                'unable to create target file: ' . $target
-            );
-        }
-        $this->node->compile($name, $this, $indent);
-        fclose($this->fp);
+        $this->module->compile($this);
+        return $this->result;
     }
 
     public function pushContext($name, $indent = 0)
@@ -79,13 +76,6 @@ final class Compiler
             );
         }
         return $this->trace;
-    }
-
-    public function __destruct()
-    {
-        if (is_resource($this->fp)) {
-            fclose($this->fp);
-        }
     }
 }
 

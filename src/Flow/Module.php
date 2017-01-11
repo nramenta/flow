@@ -4,14 +4,18 @@ namespace Flow;
 
 final class Module
 {
+    private $path;
+    private $class;
     private $extends;
     private $imports;
     private $blocks;
     private $macros;
     private $body;
 
-    public function __construct($extends, $imports, $blocks, $macros, $body)
+    public function __construct($path, $class, $extends, $imports, $blocks, $macros, $body)
     {
+        $this->path = $path;
+        $this->class = $class;
         $this->extends = $extends;
         $this->imports = $imports;
         $this->blocks = $blocks;
@@ -19,20 +23,18 @@ final class Module
         $this->body = $body;
     }
 
-    public function compile($module, $compiler, $indent = 0)
+    public function compile($compiler, $indent = 0)
     {
-        $class = Loader::CLASS_PREFIX . md5($module);
-
         $compiler->raw("<?php\n");
         $compiler->raw(
-            '// ' . $module . ' ' . gmdate('Y-m-d H:i:s T', time()) .
+            '// ' . $this->path . ' ' . gmdate('Y-m-d H:i:s T', time()) .
             "\n", $indent
         );
-        $compiler->raw("class $class extends \\Flow\\Template\n", $indent);
+        $compiler->raw("class $this->class extends \\Flow\\Template\n", $indent);
         $compiler->raw("{\n", $indent);
 
         $compiler->raw('const NAME = ', $indent + 1);
-        $compiler->repr($module);
+        $compiler->repr($this->path);
         $compiler->raw(";\n\n");
 
         $compiler->raw(
@@ -107,7 +109,7 @@ final class Module
         $compiler->raw($compiler->getTraceInfo(true) . ";\n");
 
         $compiler->raw("}\n");
-        $compiler->raw('// end of ' . $module . "\n");
+        $compiler->raw('// end of ' . $this->path. "\n");
     }
 }
 
