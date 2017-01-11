@@ -167,41 +167,11 @@ final class Lexer
 
         case self::BLOCK_START_TRIM:
         case self::BLOCK_START:
-            if (preg_match('/(\s*raw\s*)(' .
-                preg_quote(self::BLOCK_END_TRIM) . '|' .
-                preg_quote(self::BLOCK_END) . ')(.*?)(' .
-                preg_quote(self::BLOCK_START_TRIM) . '|' .
-                preg_quote(self::BLOCK_START) . ')(\s*endraw\s*)(' .
-                preg_quote(self::BLOCK_END_TRIM) . '|' .
-                preg_quote(self::BLOCK_END) . ')/As',
-                    $this->source, $match, null, $this->cursor)
-            ) {
-                $raw = $match[3];
-                if ($match[2] == self::BLOCK_END_TRIM) {
-                    $raw = preg_replace("/^[ \t]*\n?/", '', $raw);
-                }
-                if ($match[4] == self::BLOCK_START_TRIM) {
-                    $raw = rtrim($raw, " \t");
-                }
-                if ($match[6] == self::BLOCK_END_TRIM) {
-                    $this->trim = true;
-                }
-                $before = $token . $match[1] . $match[2];
-                $after  = $match[3] . $match[4] . $match[5] . $match[6];
-                $this->cursor += strlen($match[0]);
-                $this->adjustLineChar($before);
-                $tokens[] = new Token(
-                    Token::TEXT, $raw, $this->line, $this->char
-                );
-                $this->adjustLineChar($after);
-                $this->position = self::POSITION_TEXT;
-            } else {
-                $tokens[] = new Token(
-                    Token::BLOCK_START, $token, $this->line, $this->char
-                );
-                $this->adjustLineChar($token);
-                $this->position = self::POSITION_BLOCK;
-            }
+            $tokens[] = new Token(
+                Token::BLOCK_START, $token, $this->line, $this->char
+            );
+            $this->adjustLineChar($token);
+            $this->position = self::POSITION_BLOCK;
             break;
 
         case self::OUTPUT_START_TRIM:

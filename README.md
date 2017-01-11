@@ -1002,16 +1002,6 @@ The semantics are as follows:
 - `-%}`, `-}}`, and `-#}` delimiters will remove all whitespace to their right
   **up to and including** the first newline it encounters.
 
-## Raw output
-
-Sometimes you need to output raw blocks of text, as in the case of code. You
-can use the raw tag:
-
-    {% raw %}
-    I'm inside a raw tag
-    {% this will be printed as is. %}
-    {% endraw %}
-
 ## License
 
 Flow is released under the [MIT License][MIT].
