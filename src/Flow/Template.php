@@ -156,7 +156,7 @@ abstract class Template
         $name = array_shift($args);
 
         try {
-            $helper = array('Help', $name);
+            $helper = array('\Flow\Helper', $name);
             if (isset($this->helpers[$name]) &&
                 is_callable($this->helpers[$name])) {
                 return call_user_func_array($this->helpers[$name], $args);
