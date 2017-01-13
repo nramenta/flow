@@ -4,12 +4,12 @@
 
 Flow began life as a major fork of the original Twig templating engine by Armin
 Ronacher, which he made for [Chyrp], a blogging engine. Flow features template
-inheritance, includes, macros, custom helpers, autoescaping, whitespace control
-and many little features that makes writing templates enjoyable. Flow tries to
-give a consistent and coherent experience in writing clean templates. Flow
-compiles each template into its own PHP class; used with APC, this makes Flow a
-very fast and efficient templating engine. Templates can be read from files,
-loaded from string arrays, or even from databases with relative ease.
+inheritance, includes, macros, custom helpers, whitespace control and many
+little features that makes writing templates enjoyable. Flow tries to give a
+consistent and coherent experience in writing clean templates. Flow compiles
+each template into its own PHP class; used with APC, this makes Flow a very
+fast and efficient templating engine. Templates can be read from files, loaded
+from string arrays, or even from databases with relative ease.
 
 ## Installation
 
@@ -403,16 +403,20 @@ Registering custom helpers is straightforward:
 
 ```php
 <?php
+use Flow\Loader;
+use Flow\Adapter\FileAdapter;
+
 $helpers = array(
     'random' => function() { return 4; },
     'exclamation' => function($s = null) { return $s . '!'; },
 );
 
-$flow = new Loader(array(
-    'source'  => 'templates',
-    'target'  => 'cache',
-    'helpers' => $helpers,
-));
+$flow = new Loader(
+    Loader::RECOMPILE_NORMAL,
+    new FileAdapter('/path/to/templates'),
+    new FileAdapter('/path/to/cache'),
+    $helpers
+);
 
 try {
     $template = $flow->load('my_template.html');
@@ -844,10 +848,9 @@ Below is an example of implementing a Flow adapter to string arrays:
 
 ```php
 <?php
-require 'path/to/src/Flow/Loader.php';
-
 use Flow\Loader;
 use Flow\Adapter;
+use Flow\Adapter\FileAdapter;
 
 class ArrayAdapter implements Adapter
 {
@@ -856,29 +859,40 @@ class ArrayAdapter implements Adapter
         'second.html' => 'Second!',
     );
 
-    public function isReadable($path)
+    public function isReadable(string $path) : bool
     {
         return isset(self::$templates[$path]);
     }
 
-    public function lastModified($path)
+    public function lastModified(string $path) : int
     {
         return filemtime(__FILE__);
     }
 
-    public function getContents($path)
+    public function getContents(string $path) : string
     {
         return self::$templates[$path];
+    }
+
+    public function putContents(string $path, string $contents) : int
+    {
+        self::$templates[$path] = $contents;
+        return strlen($contents);
+    }
+
+    public function getStreamUrl(string $path) : string
+    {
+        /* registering array stream wrapper storage is left as an exercise */
+        return 'array://' . $path;
     }
 }
 
 Loader::autoload();
-$flow = new Loader(array(
-    'source'  => __DIR__ . '/templates',
-    'target'  => __DIR__ . '/cache',
-    'mode'    => Loader::RECOMPILE_ALWAYS,
-    'adapter' => new ArrayAdapter,
-));
+$flow = new Loader(
+    Loader::RECOMPILE_ALWAYS,
+    new ArrayAdapter,
+    new FileAdapter('/path/to/cache')
+);
 $flow->load('first.html')->display();
 ```
 
