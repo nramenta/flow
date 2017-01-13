@@ -1,14 +1,14 @@
 <?php
 
-namespace Flow\Expression;
+namespace Flow\Node;
 
-use Flow\Expression;
+use Flow\Node;
 
-class MacroExpression extends Expression
+final class CallNode extends Node
 {
-    protected $module;
-    protected $name;
-    protected $args;
+    private $module;
+    private $name;
+    private $args;
 
     public function __construct($module, $name, $args, $line)
     {
@@ -21,7 +21,7 @@ class MacroExpression extends Expression
     public function compile($compiler, $indent = 0)
     {
         $compiler->raw(
-            '$this->expandMacro(\'' . $this->module . '\', \'' . $this->name .
+            'echo $this->expandMacro(\'' . $this->module . '\', \'' . $this->name .
             '\', array(', $indent
         );
         foreach ($this->args as $key => $val) {
@@ -34,7 +34,7 @@ class MacroExpression extends Expression
                 '), $context, $macros, $imports)'
             );
         } else {
-            $compiler->raw('), $context, $macros, $imports)');
+            $compiler->raw('), $context, $macros, $imports);');
         }
     }
 }

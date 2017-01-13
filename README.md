@@ -24,7 +24,7 @@ configuration is:
 }
 ```
 
-Flow requires PHP 5.3 or newer. PHP 5.4 is strongly recommended.
+Flow requires PHP 7 or newer.
 
 ## Usage
 
@@ -34,11 +34,13 @@ Using Flow in your code is straight forward:
 <?php
 require 'path/to/src/Flow/Loader.php';
 use Flow\Loader;
+use Flow\Adapter\FileAdapter;
 Loader::autoload();
-$flow = new Loader(array(
-    'source' => 'path/to/templates',
-    'target' => 'path/to/cache',
-));
+$flow = new Loader(
+    Loader::RECOMPILE_NORMAL,
+    new FileAdapter('path/to/templates'),
+    new FileAdapter('path/to/cache')
+);
 
 try {
     $template = $flow->load('home.html');
@@ -52,18 +54,14 @@ try {
 }
 ```
 
-The `Loader` constructor accepts an array of options. They are:
+The `Loader` constructor arguments are as follows:
 
-- `source`: Path to template source files.
-- `target`: Path to compiled PHP files.
 - `mode`: Recompilation mode.
-- `mkdir`: Mode to pass to `mkdir()` when the target directory doesn't exist.
-  Use `false` to suppress automatic target directory creation. Defaults to 0777.
-- `adapter`: Optional `Flow\Adapter` object. See the section on loading
+- `source`: `Flow\Adapter` object. See the section on loading
+  templates from other sources near the bottom of this document.
+- `target`: `Flow\Adapter` object. See the section on loading
   templates from other sources near the bottom of this document.
 - `helpers` : Array of custom helpers.
-
-The `source` and `target` options are required.
 
 The `mode` option can be one of the following:
 
@@ -89,12 +87,13 @@ be an error.
 
 ## Basic concepts
 
-Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly
-for block declarations in template inheritance and control structures. Examples
-of block tags are `block`, `for`, and `if`. Some block tags may have a body
+Flow uses `{%` and `%}` to delimit block tags. Block tags are used mainly for
+block declarations in template inheritance and control structures. Examples of
+block tags are `block`, `for`, and `if`. Some block tags may have a body
 segment. They're usually enclosed by a corresponding `end<tag>` tag. Flow uses
-`{{` and `}}` to delimit output tags, and `{#` and `#}` to delimit comments.
-Keywords and identifiers are *case-sensitive*.
+`{{` and `}}` to delimit output tags, `{!` and `!}` to delimit raw output tags,
+and `{#` and `#}` to delimit comments. Keywords and identifiers are
+*case-sensitive*.
 
 ## Comments
 
@@ -115,6 +114,13 @@ and the closing `}}` tags:
     {{ "Welcome back, " ~ username }}
 
     {{ "Two plus two equals " ~ 2 + 2 }}
+
+## Raw expression output
+
+To output a raw expression without doing any output escaping, use the opening
+`{!` and the closing `!}` tags:
+
+    The following will be HTML bold: {! "<b>bold text</b>" !}
 
 ## Literals
 
@@ -383,25 +389,12 @@ Or use the helper as a function:
 
     {{ number_format(12_000 + 5_000) }}
 
-### Special `raw` helper
-
-The `raw` helper can only be applied as a filter. Its sole purpose is to mark an
-expression as a raw string that will not be escaped even when autoescaping is
-turned on:
-
-    {% autoescape on %}
-    {{ "<p>this is a valid HTML paragraph</p>" | raw }}
-
-Without the `raw` filter being applied, the above will yield
-
-    &lt;p&gt;this is a valid HTML paragraph&lt;/p&gt;
-
 ### Built-in helpers
 
 `abs`, `bytes`, `capitalize`, `cycle`, `date`, `dump`, `e`, `escape`, `first`,
 `format`, `is_divisible_by`, `is_empty`, `is_even`, `is_odd`, `join`,
 `json_encode`, `keys`, `last`, `length`, `lower`, `nl2br`, `number_format`,
-`range`, `raw`, `repeat`, `replace`, `strip_tags`, `title`, `trans`, `trim`,
+`range`, `repeat`, `replace`, `strip_tags`, `title`, `trans`, `trim`,
 `truncate`, `unescape`, `upper`, `url_encode`, `word_wrap`.
 
 ### Registering custom helpers
@@ -700,10 +693,7 @@ Macros are a great way to make flexible and reusable partial templates:
 
 To call them:
 
-    {{ @bolder("this is great!") }}
-
-Macro calls are prepended with the `@` character. This is done to avoid name
-collisions with helpers, method calls and attribute access. 
+    {% call bolder("this is great!") %}
 
 All parameters are optional; they default to `null` while extra positional
 arguments passed are ignored. Flow lets you define a custom default value for
@@ -715,7 +705,7 @@ each parameter:
 
 You can also use named arguments:
 
-    {{ @bolder(text="this is a text") }}
+    {% call bolder(text="this is a text") %}
 
 Extra named arguments overwrite positional arguments with the same name and
 previous named arguments with the same name. The parentheses are optional only
@@ -731,20 +721,13 @@ Macros are dynamically scoped. They inherit the calling context:
 
     {% set name = "Joe" %}
 
-    {{ @greet }}
+    {% call greet %}
 
 The above will print:
 
     <p>Hello Joe</p>
 
 The calling context is masked by the arguments and the default parameter values.
-
-The output of macros are by default unescaped, regardless of what the current
-`autoescape` setting is. To escape the output, you must explicitly apply the
-`escape` or `e` filter. Macro calls that are used as part of an expression will
-be escaped depending on the current `autoescape` setting. Inside the macros
-themselves, escaping works as usual and depends on the current `autoescape`
-settings. Undefined macros returns null when called.
 
 Macros are inherited by extending templates and at the same time overrides other
 macros with the same name in parent templates.
@@ -762,7 +745,7 @@ classes. To use macros defined in another template, simply import them:
 All imported macros must be aliased using the `as` keyword. To call an imported
 macro, simply prepend the macro name with the alias followed by a dot:
 
-    {{ @form.text_input }}
+    {% call form.text_input %}
 
 Imported macros are inherited by extending templates and at the same time
 overrides other imported macros with the same alias and name pair in parent
@@ -777,11 +760,11 @@ You can decorate macros by importing them first:
 
     {# this is in "macro_B.html" #}
     {% import "macro_A.html" as A %}
-    {% macro emphasize(text) %}<i>{{ @A.emphasize(text) }}</i>{% endmacro %}
+    {% macro emphasize(text) %}<i>{% call A.emphasize(text) %}</i>{% endmacro %}
 
     {# this is in "template_C.html" #}
     {% import "macro_B.html" as B %}
-    Emphasized text: {{ @B.emphasize("this is pretty cool!") }}
+    Emphasized text: {% call B.emphasize("this is pretty cool!") %}
 
 The above when rendered will yield:
 
@@ -904,49 +887,6 @@ The above will compile the templates and render the following:
 ```
 First! Second!
 ```
-
-## Output escaping
-
-You can escape data to be printed out by using the `escape` or its alias `e`
-filter. Output escaping assumes HTML output.
-
-### Using autoescape
-
-Use the auto escape facility if you want all expression output to be escaped
-before printing, minimizing potential XSS attacks:
-
-    {% autoescape on %}
-
-Think of autoescape as implicitly putting an `escape` or `e` filter on every
-expression output. You would normally want to put this directive somewhere near
-the top of your template. Autoescape works on a per template basis; it is never
-inherited, included, or imported from other templates.
-
-You do not need to worry if you accidentally double escape a variable. All data
-already escaped will **not** be autoescaped; note that this is only applicable
-when `escape` or its alias `e` is used as a filter and not a function:
-
-    {% autoescape on %}
-    {{ "Dr. Jekyll & Mr. Hyde" | escape }}
-
-You can turn autoescape off at any time by simply setting it to off:
-
-    {% autoescape off %}
-
-You can isolate the effects of autoescape, whether it's on or off, by enclosing
-it with a corresponding `endautoescape` tag:
-
-    {% autoescape on %}
-    This section is specifically autoescaped: {{ "<b>bold</b>" }}
-    {% endautoescape %}
-
-By default, autoescape is initially set to off.
-
-### Raw filter
-
-By using the `raw` filter on a variable output, the data will **not** be escaped
-regardless of any `escape` filters or the current autoescape status. You must
-use it as a filter; the `raw` helper is not available as a function.
 
 ## Controlling whitespace
 

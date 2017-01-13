@@ -60,7 +60,7 @@ class OutputTest extends PHPUnit_Framework_TestCase
         $expected = file_get_contents(__DIR__ . "/output/$data.html");
         $template = $this->flow->load("$data.html");
         $actual = $template->render();
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expected, $actual, get_class($template));
     }
 
     public function testLoadTemplateFromAbsolutePath()

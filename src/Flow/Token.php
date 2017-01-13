@@ -13,13 +13,15 @@ final class Token
     const TEXT         = 0;
     const BLOCK_START  = 1;
     const OUTPUT_START = 2;
-    const BLOCK_END    = 3;
-    const OUTPUT_END   = 4;
-    const NAME         = 5;
-    const NUMBER       = 6;
-    const STRING       = 7;
-    const OPERATOR     = 8;
-    const CONSTANT     = 9;
+    const RAW_BEGIN    = 3;
+    const BLOCK_END    = 4;
+    const OUTPUT_END   = 5;
+    const RAW_END      = 6;
+    const NAME         = 7;
+    const NUMBER       = 8;
+    const STRING       = 9;
+    const OPERATOR     = 10;
+    const CONSTANT     = 11;
 
     public function __construct($type, $value, int $line, int $char)
     {

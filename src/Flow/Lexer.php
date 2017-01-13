@@ -28,9 +28,15 @@ final class Lexer
     const OUTPUT_END        = '}}';
     const OUTPUT_END_TRIM   = '-}}';
 
-    const POSITION_TEXT  = 0;
-    const POSITION_BLOCK = 1;
-    const POSITION_OUTPUT   = 2;
+    const RAW_BEGIN      = '{!';
+    const RAW_BEGIN_TRIM = '{!-';
+    const RAW_END        = '!}';
+    const RAW_END_TRIM   = '-!}';
+
+    const POSITION_TEXT   = 0;
+    const POSITION_BLOCK  = 1;
+    const POSITION_OUTPUT = 2;
+    const POSITION_RAW    = 3;
 
     const REGEX_CONSTANT = '/true\b | false\b | null\b/Ax';
     const REGEX_NAME     = '/[a-zA-Z_][a-zA-Z0-9_]*/A';
@@ -86,6 +92,10 @@ final class Lexer
         case self::POSITION_OUTPUT:
             $this->queue = $this->lexOutput();
             break;
+
+        case self::POSITION_RAW:
+            $this->queue = $this->lexRaw();
+            break;
         }
 
         return $this->next();
@@ -112,6 +122,8 @@ final class Lexer
             preg_quote(self::COMMENT_START) . '|' .
             preg_quote(self::OUTPUT_START_TRIM) . '|' .
             preg_quote(self::OUTPUT_START) . '|' .
+            preg_quote(self::RAW_BEGIN_TRIM) . '|' .
+            preg_quote(self::RAW_BEGIN) . '|' .
             preg_quote(self::BLOCK_START_TRIM) . '|' .
             preg_quote(self::BLOCK_START) . ')/As', $this->source, $match,
                 null, $this->cursor)
@@ -140,7 +152,8 @@ final class Lexer
             }
             if ($token == self::COMMENT_START_TRIM ||
                 $token == self::BLOCK_START_TRIM ||
-                $token == self::OUTPUT_START_TRIM) {
+                $token == self::OUTPUT_START_TRIM ||
+                $token == self::RAW_BEGIN_TRIM) {
                 $text = rtrim($text, " \t");
             }
             $tokens[] = new Token(Token::TEXT, $text, $this->line, $this->char);
@@ -181,6 +194,15 @@ final class Lexer
             );
             $this->adjustLineChar($token);
             $this->position = self::POSITION_OUTPUT;
+            break;
+
+        case self::RAW_BEGIN_TRIM:
+        case self::RAW_BEGIN:
+            $tokens[] = new Token(
+                Token::RAW_BEGIN, $token, $this->line, $this->char
+            );
+            $this->adjustLineChar($token);
+            $this->position = self::POSITION_RAW;
             break;
 
         }
@@ -231,6 +253,32 @@ final class Lexer
             $this->adjustLineChar($match[1]);
             $tokens[] = new Token(
                 Token::OUTPUT_END, $match[2], $this->line, $this->char
+            );
+            $this->adjustLineChar($match[2]);
+            $this->position = self::POSITION_TEXT;
+
+            return $tokens;
+        }
+        return $this->lexExpression();
+    }
+
+    private function lexRaw() : array
+    {
+        $tokens = array();
+        $match = null;
+
+        if (preg_match('/(\s*)(' .
+            preg_quote(self::RAW_END_TRIM) . '|' .
+            preg_quote(self::RAW_END) . ')/A',
+                $this->source, $match, null, $this->cursor)
+        ) {
+            if ($match[2] == self::RAW_END_TRIM) {
+                $this->trim = true;
+            }
+            $this->cursor += strlen($match[0]);
+            $this->adjustLineChar($match[1]);
+            $tokens[] = new Token(
+                Token::RAW_END, $match[2], $this->line, $this->char
             );
             $this->adjustLineChar($match[2]);
             $this->position = self::POSITION_TEXT;
@@ -315,6 +363,17 @@ final class Lexer
             preg_match('/(.+?)\s*(' .
             preg_quote(self::OUTPUT_END_TRIM) . '|' .
             preg_quote(self::OUTPUT_END) . ')/As',
+                $this->source, $match, null, $this->cursor)
+        ) {
+            $this->cursor += strlen($match[1]);
+            $text = $match[1];
+            $tokens[] = new Token(Token::TEXT, $text, $this->line, $this->char);
+            $this->adjustLineChar($match[1]);
+
+        } elseif ($this->position == self::POSITION_RAW &&
+            preg_match('/(.+?)\s*(' .
+            preg_quote(self::RAW_END_TRIM) . '|' .
+            preg_quote(self::RAW_END) . ')/As',
                 $this->source, $match, null, $this->cursor)
         ) {
             $this->cursor += strlen($match[1]);

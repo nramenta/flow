@@ -4,7 +4,7 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class OutputNode extends Node
+class RawNode extends Node
 {
     protected $expr;
 
@@ -17,9 +17,9 @@ class OutputNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw('echo $this->helper(\'escape\', ', $indent);
+        $compiler->raw('echo ', $indent);
         $this->expr->compile($compiler);
-        $compiler->raw(");\n");
+        $compiler->raw(";\n");
     }
 }
 

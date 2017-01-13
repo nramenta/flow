@@ -13,7 +13,6 @@ final class Parser
     private $macros;
     private $inMacro;
     private $imports;
-    private $autoEscape;
 
     public function __construct(TokenStream $stream)
     {
@@ -32,9 +31,8 @@ final class Parser
             'set'           => 'parseSet',
             'block'         => 'parseBlock',
             'parent'        => 'parseParent',
-            'autoescape'    => 'parseAutoEscape',
-            'endautoescape' => 'parseEndAutoEscape',
             'macro'         => 'parseMacro',
+            'call'          => 'parseCall',
             'import'        => 'parseImport',
             'include'       => 'parseInclude',
         );
@@ -43,7 +41,6 @@ final class Parser
         $this->macros     = array();
         $this->inMacro    = false;
         $this->imports    = array();
-        $this->autoEscape = array(false);
     }
 
     public function parse($path, $class) : Module
@@ -123,22 +120,21 @@ final class Parser
             case Token::OUTPUT_START:
                 $token = $this->stream->next();
                 $expr = $this->parseExpression();
-                $autoEscape = $this->autoEscape[count($this->autoEscape) - 1];
-                if ($autoEscape) {
-                    $filters = array();
-                    if ($expr instanceof FilterExpression) {
-                        if (!$expr->isRaw()) $expr->setAutoEscape(true);
-                    } else {
-                        $expr = new Expression\FilterExpression(
-                            $expr, $filters, true, $token->getLine()
-                        );
-                    }
-                }
                 $nodes[] = $this->parseIfModifier(
                     $token, new Node\OutputNode($expr, $token->getLine())
                 );
                 $this->stream->expect(Token::OUTPUT_END);
                 break;
+
+            case Token::RAW_BEGIN:
+                $token = $this->stream->next();
+                $expr = $this->parseExpression();
+                $nodes[] = $this->parseIfModifier(
+                    $token, new Node\RawNode($expr, $token->getLine())
+                );
+                $this->stream->expect(Token::RAW_END);
+                break;
+
             default:
                 throw new SyntaxError(
                     'parser ended up in unsupported state',
@@ -368,17 +364,6 @@ final class Parser
             $this->parseName(false, $name);
         } else {
             $expr = $this->parseExpression();
-            $autoEscape = $this->autoEscape[count($this->autoEscape) - 1];
-            if ($autoEscape) {
-                $filters = array();
-                if ($expr instanceof FilterExpression) {
-                    if (!$expr->isRaw()) $expr->setAutoEscape(true);
-                } else {
-                    $expr = new Expression\FilterExpression(
-                        $expr, $filters, true, $token->getLine()
-                    );
-                }
-            }
             $body = new Node\OutputNode($expr, $token->getLine());
         }
         $this->stream->expect(Token::BLOCK_END);
@@ -406,24 +391,6 @@ final class Parser
         );
         $this->stream->expect(Token::BLOCK_END);
         return $node;
-    }
-
-    private function parseAutoEscape($token)
-    {
-        $autoEscape = $this->stream->expect(array('on', 'off'))->getValue();
-        $this->stream->expect(Token::BLOCK_END);
-        array_push($this->autoEscape, $autoEscape == 'on' ? true : false);
-        return null;
-    }
-
-    private function parseEndAutoEscape($token)
-    {
-        if (empty($this->autoEscape)) {
-            throw new SyntaxError('unmatched endautoescape tag', $token);
-        }
-        array_pop($this->autoEscape);
-        $this->stream->expect(Token::BLOCK_END);
-        return null;
     }
 
     private function parseMacro($token)
@@ -477,6 +444,45 @@ final class Parser
             $name, $args, $body, $token->getLine()
         );
         $this->inMacro = false;
+    }
+
+    private function parseCall($token) : Node
+    {
+        static $constants = array('true', 'false', 'null');
+        static $operators = array('and', 'xor', 'or', 'not', 'in');
+
+        $module = null;
+        $name = $this->parseName()->getValue();
+        if ($this->stream->consume(Token::OPERATOR, '.')) {
+            $module = $name;
+            $name = $this->parseName()->getValue();
+        }
+        $args = array();
+
+        if ($this->stream->consume(Token::OPERATOR, '(')) {
+            while (!$this->stream->test(Token::OPERATOR, ')')) {
+                if (!empty($args)) {
+                    $this->stream->expect(Token::OPERATOR, ',');
+                    if ($this->stream->test(Token::OPERATOR, ')'))
+                        break;
+                }
+                if (($this->stream->test(Token::NAME) ||
+                    $this->stream->test(Token::CONSTANT, $constants) ||
+                    $this->stream->test(Token::OPERATOR, $operators)) &&
+                    $this->stream->look()->test(Token::OPERATOR, '=')
+                ) {
+                    $key = $this->parseName()->getValue();
+                    $this->stream->expect(Token::OPERATOR, '=');
+                    $val = $this->parseExpression();
+                    $args[$key] = $val;
+                } else {
+                    $args[] = $this->parseExpression();
+                }
+            }
+            $this->stream->expect(Token::OPERATOR, ')');
+        }
+        $this->stream->expect(Token::BLOCK_END);
+        return new Node\CallNode($module, $name, $args, $token->getLine());
     }
 
     private function parseImport($token)
@@ -753,12 +759,7 @@ final class Parser
                 break;
             }
         default:
-            if ($this->stream->consume(Token::OPERATOR, '@')) {
-                $node = new Expression\FilterExpression(
-                    $this->parseMacroExpression($token), array('raw'), false,
-                    $token->getLine()
-                );
-            } elseif ($this->stream->consume(Token::OPERATOR, '[')) {
+            if ($this->stream->consume(Token::OPERATOR, '[')) {
                 $node = $this->parseArrayExpression();
                 $this->stream->expect(Token::OPERATOR, ']');
             } elseif ($this->stream->consume(Token::OPERATOR, '(')) {
@@ -839,44 +840,6 @@ final class Parser
         }
         $this->stream->expect(Token::OPERATOR, ')');
         return new Expression\FunctionCallExpression($node, $args, $line);
-    }
-
-    private function parseMacroExpression($token) : Expression
-    {
-        static $constants = array('true', 'false', 'null');
-        static $operators = array('and', 'xor', 'or', 'not', 'in');
-
-        $module = null;
-        $name = $this->parseName()->getValue();
-        if ($this->stream->consume(Token::OPERATOR, '.')) {
-            $module = $name;
-            $name = $this->parseName()->getValue();
-        }
-        $args = array();
-
-        if ($this->stream->consume(Token::OPERATOR, '(')) {
-            while (!$this->stream->test(Token::OPERATOR, ')')) {
-                if (!empty($args)) {
-                    $this->stream->expect(Token::OPERATOR, ',');
-                    if ($this->stream->test(Token::OPERATOR, ')'))
-                        break;
-                }
-                if (($this->stream->test(Token::NAME) ||
-                    $this->stream->test(Token::CONSTANT, $constants) ||
-                    $this->stream->test(Token::OPERATOR, $operators)) &&
-                    $this->stream->look()->test(Token::OPERATOR, '=')
-                ) {
-                    $key = $this->parseName()->getValue();
-                    $this->stream->expect(Token::OPERATOR, '=');
-                    $val = $this->parseExpression();
-                    $args[$key] = $val;
-                } else {
-                    $args[] = $this->parseExpression();
-                }
-            }
-            $this->stream->expect(Token::OPERATOR, ')');
-        }
-        return new Expression\MacroExpression($module, $name, $args, $token->getLine());
     }
 
     private function parseArrayExpression() : Expression
@@ -997,7 +960,7 @@ final class Parser
             $filters[] = array($token->getValue(), $args);
 
         }
-        return new Expression\FilterExpression($node, $filters, false, $line);
+        return new Expression\FilterExpression($node, $filters, $line);
     }
 }
 

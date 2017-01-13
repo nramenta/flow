@@ -58,6 +58,16 @@ return [
     new Token(Token::OUTPUT_END, '}}', 11, 7),
     new Token(Token::TEXT, "\n", 11, 9),
 
-    new Token(Token::EOF, null, 12, 1),
+    new Token(Token::OUTPUT_START, '{{', 12, 1),
+    new Token(Token::STRING, '<b>bold</b>', 12, 4),
+    new Token(Token::OUTPUT_END, '}}', 12, 18),
+    new Token(Token::TEXT, "\n", 12, 20),
+
+    new Token(Token::RAW_BEGIN, '{!', 13, 1),
+    new Token(Token::STRING, '<i>italic</i>', 13, 4),
+    new Token(Token::RAW_END, '!}', 13, 20),
+    new Token(Token::TEXT, "\n", 13, 22),
+
+    new Token(Token::EOF, null, 14, 1),
 ];
 

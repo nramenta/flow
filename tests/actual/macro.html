@@ -1,7 +1,8 @@
 {% macro bold(text="Hello, World!") %}
-<b>{{ text }}</b>
+<b>{! text !}</b>
+<i>{{ text }}</i>
 {% endmacro %}
 
-{{ @bold }}
-{{ @bold("Foo") }}
-{{ @bold(text="Bar") }}
+{% call bold %}
+{% call bold("Foo") %}
+{% call bold(text="<i>Bar</i>") %}
