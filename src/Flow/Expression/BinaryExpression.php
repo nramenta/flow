@@ -4,16 +4,26 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class BinaryExpression extends Expression
+abstract class BinaryExpression extends Expression
 {
-    protected $left;
-    protected $right;
+    private $left;
+    private $right;
 
     public function __construct($left, $right, $line)
     {
         parent::__construct($line);
         $this->left = $left;
         $this->right = $right;
+    }
+
+    public function getLeftOperand()
+    {
+        return $this->left;
+    }
+
+    public function getRightOperand()
+    {
+        return $this->right;
     }
 
     public function compile($compiler, $indent = 0)

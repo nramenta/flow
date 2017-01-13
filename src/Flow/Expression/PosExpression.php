@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class PosExpression extends UnaryExpression
+final class PosExpression extends UnaryExpression
 {
     public function operator($compiler)
     {

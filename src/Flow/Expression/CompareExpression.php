@@ -4,10 +4,10 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class CompareExpression extends Expression
+final class CompareExpression extends Expression
 {
-    protected $expr;
-    protected $ops;
+    private $expr;
+    private $ops;
 
     public function __construct($expr, $ops, $line)
     {

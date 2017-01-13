@@ -4,9 +4,9 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class BlockDisplayNode extends Node
+final class BlockDisplayNode extends Node
 {
-    protected $name;
+    private $name;
 
     public function __construct($name, $line)
     {

@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class ConcatExpression extends BinaryExpression
+final class ConcatExpression extends BinaryExpression
 {
     public function operator()
     {

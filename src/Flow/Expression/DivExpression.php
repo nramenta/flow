@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class DivExpression extends BinaryExpression
+final class DivExpression extends BinaryExpression
 {
     public function operator()
     {

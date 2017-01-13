@@ -4,7 +4,7 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class ContinueNode extends Node
+final class ContinueNode extends Node
 {
     public function compile($compiler, $indent = 0)
     {

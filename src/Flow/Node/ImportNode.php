@@ -4,10 +4,10 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class ImportNode extends Node
+final class ImportNode extends Node
 {
-    protected $module;
-    protected $import;
+    private $module;
+    private $import;
 
     public function __construct($module, $import, $line)
     {

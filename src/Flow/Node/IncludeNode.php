@@ -4,10 +4,10 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class IncludeNode extends Node
+final class IncludeNode extends Node
 {
-    protected $include;
-    protected $params;
+    private $include;
+    private $params;
 
     public function __construct($include, $params, $line)
     {

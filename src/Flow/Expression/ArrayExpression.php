@@ -4,7 +4,7 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class ArrayExpression extends Expression
+final class ArrayExpression extends Expression
 {
     protected $elements;
 

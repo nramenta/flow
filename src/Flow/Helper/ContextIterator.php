@@ -2,9 +2,9 @@
 
 namespace Flow\Helper;
 
-class ContextIterator implements \Iterator
+final class ContextIterator implements \Iterator
 {
-    protected $sequence;
+    private $sequence;
 
     public function __construct($sequence, $parent)
     {

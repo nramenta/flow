@@ -2,11 +2,11 @@
 
 namespace Flow\Helper;
 
-class Cycler implements \IteratorAggregate
+final class Cycler implements \IteratorAggregate
 {
-    protected $elements;
-    protected $length;
-    protected $idx;
+    private $elements;
+    private $length;
+    private $idx;
 
     public function __construct($elements)
     {

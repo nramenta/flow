@@ -4,10 +4,10 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class FunctionCallExpression extends Expression
+final class FunctionCallExpression extends Expression
 {
-    protected $node;
-    protected $args;
+    private $node;
+    private $args;
 
     public function __construct($node, $args, $line)
     {

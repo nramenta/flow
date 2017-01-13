@@ -4,9 +4,9 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class ConstantExpression extends Expression
+final class ConstantExpression extends Expression
 {
-    protected $value;
+    private $value;
 
     public function __construct($value, $line)
     {

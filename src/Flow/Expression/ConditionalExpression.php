@@ -4,11 +4,11 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class ConditionalExpression extends Expression
+final class ConditionalExpression extends Expression
 {
-    protected $expr1;
-    protected $expr2;
-    protected $expr3;
+    private $expr1;
+    private $expr2;
+    private $expr3;
 
     public function __construct($expr1, $expr2, $expr3, $line)
     {

@@ -4,11 +4,11 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class MacroNode extends Node
+final class MacroNode extends Node
 {
-    protected $name;
-    protected $args;
-    protected $body;
+    private $name;
+    private $args;
+    private $body;
 
     public function __construct($name, $args, $body, $line)
     {

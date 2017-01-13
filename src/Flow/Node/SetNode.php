@@ -5,11 +5,11 @@ namespace Flow\Node;
 use Flow\Node;
 use Flow\NodeList;
 
-class SetNode extends Node
+final class SetNode extends Node
 {
-    protected $name;
-    protected $attrs;
-    protected $value;
+    private $name;
+    private $attrs;
+    private $value;
 
     public function __construct($name, $attrs, $value, $line)
     {

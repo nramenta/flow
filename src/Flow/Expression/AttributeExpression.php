@@ -4,11 +4,11 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class AttributeExpression extends Expression
+final class AttributeExpression extends Expression
 {
-    protected $node;
-    protected $attr;
-    protected $args;
+    private $node;
+    private $attr;
+    private $args;
 
     public function __construct($node, $attr, $args, $line)
     {

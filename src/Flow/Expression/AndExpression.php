@@ -2,14 +2,14 @@
 
 namespace Flow\Expression;
 
-class AndExpression extends LogicalExpression
+final class AndExpression extends LogicalExpression
 {
     public function compile($compiler, $indent = 0)
     {
         $compiler->raw('(!($a = ', $indent);
-        $this->left->compile($compiler);
+        $this->getLeftOperand()->compile($compiler);
         $compiler->raw(') ? ($a) : (');
-        $this->right->compile($compiler);
+        $this->getRightOperand()->compile($compiler);
         $compiler->raw('))');
     }
 }

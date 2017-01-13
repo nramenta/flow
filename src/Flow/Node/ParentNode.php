@@ -4,9 +4,9 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class ParentNode extends Node
+final class ParentNode extends Node
 {
-    protected $name;
+    private $name;
 
     public function __construct($name, $line)
     {

@@ -2,12 +2,12 @@
 
 namespace Flow\Helper;
 
-class RangeIterator implements \Iterator
+final class RangeIterator implements \Iterator
 {
-    protected $lower;
-    protected $upper;
-    protected $step;
-    protected $current;
+    private $lower;
+    private $upper;
+    private $step;
+    private $current;
 
     public function __construct($lower, $upper, $step = 1)
     {

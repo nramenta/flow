@@ -4,10 +4,10 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class IfNode extends Node
+final class IfNode extends Node
 {
-    protected $tests;
-    protected $else;
+    private $tests;
+    private $else;
 
     public function __construct($tests, $else, $line)
     {

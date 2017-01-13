@@ -4,9 +4,9 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class OutputNode extends Node
+final class OutputNode extends Node
 {
-    protected $expr;
+    private $expr;
 
     public function __construct($expr, $line)
     {

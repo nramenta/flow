@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class LogicalExpression extends BinaryExpression
+abstract class LogicalExpression extends BinaryExpression
 {
 }
 

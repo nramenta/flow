@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class NotExpression extends UnaryExpression
+final class NotExpression extends UnaryExpression
 {
     public function operator($compiler)
     {

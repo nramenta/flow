@@ -4,10 +4,10 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class BlockNode extends Node
+final class BlockNode extends Node
 {
-    protected $name;
-    protected $body;
+    private $name;
+    private $body;
 
     public function __construct($name, $body, $line)
     {

@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class ModExpression extends BinaryExpression
+final class ModExpression extends BinaryExpression
 {
     public function compile($compiler, $indent = 0)
     {

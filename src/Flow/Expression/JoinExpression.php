@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class JoinExpression extends BinaryExpression
+final class JoinExpression extends BinaryExpression
 {
     public function operator()
     {

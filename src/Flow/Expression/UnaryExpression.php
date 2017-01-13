@@ -4,9 +4,9 @@ namespace Flow\Expression;
 
 use Flow\Expression;
 
-class UnaryExpression extends Expression
+abstract class UnaryExpression extends Expression
 {
-    protected $node;
+    private $node;
 
     public function __construct($node, $line)
     {

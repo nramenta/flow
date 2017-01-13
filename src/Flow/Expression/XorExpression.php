@@ -2,7 +2,7 @@
 
 namespace Flow\Expression;
 
-class XorExpression extends BinaryExpression
+final class XorExpression extends BinaryExpression
 {
     public function operator()
     {

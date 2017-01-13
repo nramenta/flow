@@ -4,10 +4,10 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class ExtendsNode extends Node
+final class ExtendsNode extends Node
 {
-    protected $parent;
-    protected $params;
+    private $parent;
+    private $params;
 
     public function __construct($parent, $params, $line)
     {

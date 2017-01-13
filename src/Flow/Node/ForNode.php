@@ -4,13 +4,13 @@ namespace Flow\Node;
 
 use Flow\Node;
 
-class ForNode extends Node
+final class ForNode extends Node
 {
-    protected $seq;
-    protected $key;
-    protected $value;
-    protected $body;
-    protected $else;
+    private $seq;
+    private $key;
+    private $value;
+    private $body;
+    private $else;
 
     public function __construct($seq, $key, $value, $body, $else, $line)
     {
