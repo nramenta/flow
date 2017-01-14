@@ -11,7 +11,7 @@ return [
     new Token(Token::BLOCK_END, '%}', 1, 43),
     new Token(Token::TEXT, "\n\n", 1, 45),
 
-    new Token(Token::OUTPUT_START, '{{', 3, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 3, 1),
     new Token(Token::NAME, 'answer_to_life_and_everything', 3, 4),
     new Token(Token::OUTPUT_END, '}}', 3, 34),
     new Token(Token::TEXT, "\n\n", 3, 36),
@@ -27,7 +27,7 @@ return [
     new Token(Token::BLOCK_END, '%}', 7, 11),
     new Token(Token::TEXT, "\n\n", 7, 13),
 
-    new Token(Token::OUTPUT_START, '{{', 9, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 9, 1),
     new Token(Token::NAME, 'partial', 9, 4),
     new Token(Token::OUTPUT_END, '}}', 9, 12),
     new Token(Token::TEXT, "\n", 9, 14),

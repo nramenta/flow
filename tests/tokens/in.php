@@ -3,7 +3,7 @@
 namespace Flow;
 
 return [
-    new Token(Token::OUTPUT_START, '{{', 1, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 1, 1),
     new Token(Token::NUMBER, '1', 1, 4),
     new Token(Token::OPERATOR, 'in', 1, 6),
     new Token(Token::OPERATOR, '[', 1, 9),
@@ -16,7 +16,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 1, 19),
     new Token(Token::TEXT, "\n", 1, 21),
 
-    new Token(Token::OUTPUT_START, '{{', 2, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 2, 1),
     new Token(Token::NUMBER, '0', 2, 4),
     new Token(Token::OPERATOR, 'not', 2, 6),
     new Token(Token::OPERATOR, 'in', 2, 10),
@@ -30,7 +30,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 2, 23),
     new Token(Token::TEXT, "\n", 2, 25),
 
-    new Token(Token::OUTPUT_START, '{{', 3, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 3, 1),
     new Token(Token::NUMBER, '1', 3, 4),
     new Token(Token::OPERATOR, 'not', 3, 6),
     new Token(Token::OPERATOR, 'in', 3, 10),

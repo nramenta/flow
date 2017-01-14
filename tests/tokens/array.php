@@ -3,7 +3,7 @@
 namespace Flow;
 
 return [
-    new Token(Token::OUTPUT_START, '{{', 1, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 1, 1),
     new Token(Token::OPERATOR, '[', 1, 4),
     new Token(Token::NUMBER, '1', 1, 5),
     new Token(Token::OPERATOR, ',', 1, 6),
@@ -17,7 +17,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 1, 17),
     new Token(Token::TEXT, "\n", 1, 19),
 
-    new Token(Token::OUTPUT_START, '{{', 2, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 2, 1),
     new Token(Token::OPERATOR, '[', 2, 4),
     new Token(Token::NUMBER, '1', 2, 5),
     new Token(Token::OPERATOR, ',', 2, 6),
@@ -32,7 +32,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 2, 18),
     new Token(Token::TEXT, "\n", 2, 20),
 
-    new Token(Token::OUTPUT_START, '{{', 3, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 3, 1),
     new Token(Token::OPERATOR, '[', 3, 4),
     new Token(Token::STRING, 'foo', 3, 5),
     new Token(Token::OPERATOR, '=>', 3, 11),
@@ -53,7 +53,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 3, 49),
     new Token(Token::TEXT, "\n", 3, 51),
 
-    new Token(Token::OUTPUT_START, '{{', 4, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 4, 1),
     new Token(Token::OPERATOR, '[', 4, 4),
     new Token(Token::NUMBER, '1', 4, 5),
     new Token(Token::OPERATOR, ']', 4, 6),

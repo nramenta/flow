@@ -3,7 +3,7 @@
 namespace Flow;
 
 return [
-    new Token(Token::OUTPUT_START, '{{', 1, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 1, 1),
     new Token(Token::OPERATOR, '(', 1, 4),
     new Token(Token::CONSTANT, 'true', 1, 5),
     new Token(Token::OPERATOR, 'and', 1, 10),
@@ -14,7 +14,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 1, 31),
     new Token(Token::TEXT, "\n", 1, 33),
 
-    new Token(Token::OUTPUT_START, '{{', 2, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 2, 1),
     new Token(Token::CONSTANT, 'true', 2, 4),
     new Token(Token::OPERATOR, 'and', 2, 9),
     new Token(Token::OPERATOR, '(', 2, 13),
@@ -25,7 +25,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 2, 31),
     new Token(Token::TEXT, "\n", 2, 33),
 
-    new Token(Token::OUTPUT_START, '{{', 3, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 3, 1),
     new Token(Token::CONSTANT, 'true', 3, 4),
     new Token(Token::OPERATOR, 'and', 3, 9),
     new Token(Token::CONSTANT, 'false', 3, 13),
@@ -34,7 +34,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 3, 29),
     new Token(Token::TEXT, "\n\n", 3, 31),
 
-    new Token(Token::OUTPUT_START, '{{', 5, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 5, 1),
     new Token(Token::CONSTANT, 'true', 5, 4),
     new Token(Token::OPERATOR, 'or', 5, 9),
     new Token(Token::CONSTANT, 'false', 5, 12),
@@ -43,7 +43,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 5, 28),
     new Token(Token::TEXT, "\n", 5, 30),
 
-    new Token(Token::OUTPUT_START, '{{', 6, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 6, 1),
     new Token(Token::CONSTANT, 'true', 6, 4),
     new Token(Token::OPERATOR, 'or', 6, 9),
     new Token(Token::OPERATOR, '(', 6, 12),
@@ -54,7 +54,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 6, 30),
     new Token(Token::TEXT, "\n", 6, 32),
 
-    new Token(Token::OUTPUT_START, '{{', 7, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 7, 1),
     new Token(Token::OPERATOR, '(', 7, 4),
     new Token(Token::CONSTANT, 'true', 7, 5),
     new Token(Token::OPERATOR, 'or', 7, 10),
@@ -65,7 +65,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 7, 30),
     new Token(Token::TEXT, "\n\n", 7, 32),
 
-    new Token(Token::OUTPUT_START, '{{', 9, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 9, 1),
     new Token(Token::CONSTANT, 'true', 9, 4),
     new Token(Token::OPERATOR, 'and', 9, 9),
     new Token(Token::OPERATOR, 'not', 9, 13),
@@ -73,7 +73,7 @@ return [
     new Token(Token::OUTPUT_END, '}}', 9, 23),
     new Token(Token::TEXT, "\n", 9, 25),
 
-    new Token(Token::OUTPUT_START, '{{', 10, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 10, 1),
     new Token(Token::OPERATOR, 'not', 10, 4),
     new Token(Token::CONSTANT, 'true', 10, 8),
     new Token(Token::OPERATOR, 'or', 10, 13),

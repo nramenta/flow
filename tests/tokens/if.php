@@ -31,14 +31,14 @@ return [
     new Token(Token::BLOCK_END, '%}', 9, 10),
     new Token(Token::TEXT, "\n\n", 9, 12),
 
-    new Token(Token::OUTPUT_START, '{{', 11, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 11, 1),
     new Token(Token::STRING, 'this will be printed', 11, 4),
     new Token(Token::NAME, 'if', 11, 27),
     new Token(Token::CONSTANT, 'true', 11, 30),
     new Token(Token::OUTPUT_END, '}}', 11, 35),
     new Token(Token::TEXT, "\n", 11, 37),
 
-    new Token(Token::OUTPUT_START, '{{', 12, 1),
+    new Token(Token::OUTPUT_BEGIN, '{{', 12, 1),
     new Token(Token::STRING, 'this will never be printed', 12, 4),
     new Token(Token::NAME, 'if', 12, 33),
     new Token(Token::CONSTANT, 'false', 12, 36),

@@ -23,8 +23,8 @@ final class Lexer
     const COMMENT_END        = '#}';
     const COMMENT_END_TRIM   = '-#}';
 
-    const OUTPUT_START      = '{{';
-    const OUTPUT_START_TRIM = '{{-';
+    const OUTPUT_BEGIN      = '{{';
+    const OUTPUT_BEGIN_TRIM = '{{-';
     const OUTPUT_END        = '}}';
     const OUTPUT_END_TRIM   = '-}}';
 
@@ -120,8 +120,8 @@ final class Lexer
         if (!preg_match('/(.*?)(' .
             preg_quote(self::COMMENT_START_TRIM) .'|' .
             preg_quote(self::COMMENT_START) . '|' .
-            preg_quote(self::OUTPUT_START_TRIM) . '|' .
-            preg_quote(self::OUTPUT_START) . '|' .
+            preg_quote(self::OUTPUT_BEGIN_TRIM) . '|' .
+            preg_quote(self::OUTPUT_BEGIN) . '|' .
             preg_quote(self::RAW_BEGIN_TRIM) . '|' .
             preg_quote(self::RAW_BEGIN) . '|' .
             preg_quote(self::BLOCK_BEGIN_TRIM) . '|' .
@@ -152,7 +152,7 @@ final class Lexer
             }
             if ($token == self::COMMENT_START_TRIM ||
                 $token == self::BLOCK_BEGIN_TRIM ||
-                $token == self::OUTPUT_START_TRIM ||
+                $token == self::OUTPUT_BEGIN_TRIM ||
                 $token == self::RAW_BEGIN_TRIM) {
                 $text = rtrim($text, " \t");
             }
@@ -187,10 +187,10 @@ final class Lexer
             $this->position = self::POSITION_BLOCK;
             break;
 
-        case self::OUTPUT_START_TRIM:
-        case self::OUTPUT_START:
+        case self::OUTPUT_BEGIN_TRIM:
+        case self::OUTPUT_BEGIN:
             $tokens[] = new Token(
-                Token::OUTPUT_START, $token, $this->line, $this->char
+                Token::OUTPUT_BEGIN, $token, $this->line, $this->char
             );
             $this->adjustLineChar($token);
             $this->position = self::POSITION_OUTPUT;

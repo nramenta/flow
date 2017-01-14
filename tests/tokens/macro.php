@@ -19,7 +19,7 @@ return [
     new Token(Token::RAW_END, '!}', 2, 12),
     new Token(Token::TEXT, "</b>\n<i>", 2, 14),
 
-    new Token(Token::OUTPUT_START, '{{', 3, 4),
+    new Token(Token::OUTPUT_BEGIN, '{{', 3, 4),
     new Token(Token::NAME, 'text', 3, 7),
     new Token(Token::OUTPUT_END, '}}', 3, 12),
     new Token(Token::TEXT, "</i>\n", 3, 14),

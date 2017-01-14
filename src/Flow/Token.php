@@ -12,7 +12,7 @@ final class Token
     const EOF          = -1;
     const TEXT         = 0;
     const BLOCK_BEGIN  = 1;
-    const OUTPUT_START = 2;
+    const OUTPUT_BEGIN = 2;
     const RAW_BEGIN    = 3;
     const BLOCK_END    = 4;
     const OUTPUT_END   = 5;
@@ -47,8 +47,8 @@ final class Token
         case self::BLOCK_BEGIN:
             $name = 'BLOCK_BEGIN';
             break;
-        case self::OUTPUT_START:
-            $name = 'OUTPUT_START';
+        case self::OUTPUT_BEGIN:
+            $name = 'OUTPUT_BEGIN';
             break;
         case self::BLOCK_END:
             $name = 'BLOCK_END';
@@ -88,9 +88,9 @@ final class Token
             $name = 'block start (either "' . Lexer::BLOCK_BEGIN . '" or "' .
                 Lexer::BLOCK_BEGIN_TRIM . '")';
             break;
-        case self::OUTPUT_START:
-            $name = 'block start (either "' . Lexer::OUTPUT_START . '" or "' .
-                Lexer::OUTPUT_START_TRIM . '")';
+        case self::OUTPUT_BEGIN:
+            $name = 'block start (either "' . Lexer::OUTPUT_BEGIN . '" or "' .
+                Lexer::OUTPUT_BEGIN_TRIM . '")';
             break;
         case self::BLOCK_END:
             $name = 'block end (either "' . Lexer::BLOCK_END . '" or "' .

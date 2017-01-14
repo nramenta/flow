@@ -17,7 +17,7 @@ return [
     new Token(Token::BLOCK_END, '%}', 1, 21),
     new Token(Token::TEXT, "\n  ", 1, 23),
 
-    new Token(Token::OUTPUT_START, '{{', 2, 3),
+    new Token(Token::OUTPUT_BEGIN, '{{', 2, 3),
     new Token(Token::NAME, 'i', 2, 6),
     new Token(Token::OUTPUT_END, '}}', 2, 8),
     new Token(Token::TEXT, "\n", 2, 10),
@@ -35,7 +35,7 @@ return [
     new Token(Token::BLOCK_END, '%}', 5, 21),
     new Token(Token::TEXT, "\n  ", 5, 23),
 
-    new Token(Token::OUTPUT_START, '{{', 6, 3),
+    new Token(Token::OUTPUT_BEGIN, '{{', 6, 3),
     new Token(Token::NAME, 'i', 6, 6),
     new Token(Token::OUTPUT_END, '}}', 6, 8),
     new Token(Token::TEXT, "\n", 6, 10),

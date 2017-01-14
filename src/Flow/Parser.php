@@ -117,7 +117,7 @@ final class Parser
                 }
                 break;
 
-            case Token::OUTPUT_START:
+            case Token::OUTPUT_BEGIN:
                 $token = $this->stream->next();
                 $expr = $this->parseExpression();
                 $nodes[] = $this->parseIfModifier(
