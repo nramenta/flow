@@ -18,8 +18,8 @@ final class Lexer
     const BLOCK_END        = '%}';
     const BLOCK_END_TRIM   = '-%}';
 
-    const COMMENT_START      = '{#';
-    const COMMENT_START_TRIM = '{#-';
+    const COMMENT_BEGIN      = '{#';
+    const COMMENT_BEGIN_TRIM = '{#-';
     const COMMENT_END        = '#}';
     const COMMENT_END_TRIM   = '-#}';
 
@@ -118,8 +118,8 @@ final class Lexer
 
         // all text
         if (!preg_match('/(.*?)(' .
-            preg_quote(self::COMMENT_START_TRIM) .'|' .
-            preg_quote(self::COMMENT_START) . '|' .
+            preg_quote(self::COMMENT_BEGIN_TRIM) .'|' .
+            preg_quote(self::COMMENT_BEGIN) . '|' .
             preg_quote(self::OUTPUT_BEGIN_TRIM) . '|' .
             preg_quote(self::OUTPUT_BEGIN) . '|' .
             preg_quote(self::RAW_BEGIN_TRIM) . '|' .
@@ -150,7 +150,7 @@ final class Lexer
                 $text = preg_replace("/^[ \t]*\n?/", '', $text);
                 $this->trim = false;
             }
-            if ($token == self::COMMENT_START_TRIM ||
+            if ($token == self::COMMENT_BEGIN_TRIM ||
                 $token == self::BLOCK_BEGIN_TRIM ||
                 $token == self::OUTPUT_BEGIN_TRIM ||
                 $token == self::RAW_BEGIN_TRIM) {
@@ -163,8 +163,8 @@ final class Lexer
 
         switch ($token) {
 
-        case self::COMMENT_START_TRIM:
-        case self::COMMENT_START:
+        case self::COMMENT_BEGIN_TRIM:
+        case self::COMMENT_BEGIN:
             if (preg_match('/.*?(' .
                 preg_quote(self::COMMENT_END_TRIM) . '|' .
                 preg_quote(self::COMMENT_END) . ')/As',
