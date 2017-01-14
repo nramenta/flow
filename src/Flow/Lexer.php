@@ -13,8 +13,8 @@ final class Lexer
     private $end;
     private $trim;
 
-    const BLOCK_START      = '{%';
-    const BLOCK_START_TRIM = '{%-';
+    const BLOCK_BEGIN      = '{%';
+    const BLOCK_BEGIN_TRIM = '{%-';
     const BLOCK_END        = '%}';
     const BLOCK_END_TRIM   = '-%}';
 
@@ -124,8 +124,8 @@ final class Lexer
             preg_quote(self::OUTPUT_START) . '|' .
             preg_quote(self::RAW_BEGIN_TRIM) . '|' .
             preg_quote(self::RAW_BEGIN) . '|' .
-            preg_quote(self::BLOCK_START_TRIM) . '|' .
-            preg_quote(self::BLOCK_START) . ')/As', $this->source, $match,
+            preg_quote(self::BLOCK_BEGIN_TRIM) . '|' .
+            preg_quote(self::BLOCK_BEGIN) . ')/As', $this->source, $match,
                 null, $this->cursor)
         ) {
             $text = substr($this->source, $this->cursor);
@@ -151,7 +151,7 @@ final class Lexer
                 $this->trim = false;
             }
             if ($token == self::COMMENT_START_TRIM ||
-                $token == self::BLOCK_START_TRIM ||
+                $token == self::BLOCK_BEGIN_TRIM ||
                 $token == self::OUTPUT_START_TRIM ||
                 $token == self::RAW_BEGIN_TRIM) {
                 $text = rtrim($text, " \t");
@@ -178,10 +178,10 @@ final class Lexer
             }
             break;
 
-        case self::BLOCK_START_TRIM:
-        case self::BLOCK_START:
+        case self::BLOCK_BEGIN_TRIM:
+        case self::BLOCK_BEGIN:
             $tokens[] = new Token(
-                Token::BLOCK_START, $token, $this->line, $this->char
+                Token::BLOCK_BEGIN, $token, $this->line, $this->char
             );
             $this->adjustLineChar($token);
             $this->position = self::POSITION_BLOCK;

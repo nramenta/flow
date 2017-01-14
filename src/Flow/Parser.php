@@ -63,7 +63,7 @@ final class Parser
                 $token = $this->stream->next();
                 $nodes[] = new Node\TextNode($token->getValue(), $token->getLine());
                 break;
-            case Token::BLOCK_START:
+            case Token::BLOCK_BEGIN:
                 $this->stream->next();
                 $token = $this->stream->getCurrentToken();
                 if ($token->getType() !== Token::NAME) {

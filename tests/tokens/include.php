@@ -3,7 +3,7 @@
 namespace Flow;
 
 return [
-    new Token(Token::BLOCK_START, '{%', 1, 1),
+    new Token(Token::BLOCK_BEGIN, '{%', 1, 1),
     new Token(Token::NAME, 'include', 1, 4),
     new Token(Token::STRING, "includes/partial.html", 1, 12),
     new Token(Token::BLOCK_END, '%}', 1, 36),
