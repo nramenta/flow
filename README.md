@@ -741,17 +741,19 @@ macros in a template is also a syntax error.
 
 ### Macro block and yield
 
-You can call a macro with a block and `yield` inside the macro definition:
+You can call a macro `with` a block and `yield` inside the macro definition:
 
     {% macro header %}
     <header>{% yield %}</header>
     {% endmacro %}
 
+    {% set title = "Flow macro blocks is cool" %}
+
     {% call header with %}<h1>{{ title or "This is the title" }}</h1>{% endcall %}
 
 The above will result in:
 
-    <header><h1>This is the title</h1></header>
+    <header><h1>Flow macro blocks is cool</h1></header>
 
 It is possible to `yield` multiple times and to also provide context overrides:
 
