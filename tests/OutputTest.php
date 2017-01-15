@@ -1,12 +1,11 @@
 <?php
 
-require __DIR__ . '/../src/Flow/Loader.php';
+namespace Flow;
+
+use PHPUnit_Framework_TestCase;
 
 use Flow\Loader;
-use Flow\Helper;
 use Flow\Adapter\FileAdapter;
-
-Loader::autoload();
 
 class OutputTest extends PHPUnit_Framework_TestCase
 {
@@ -23,43 +22,34 @@ class OutputTest extends PHPUnit_Framework_TestCase
 
     public function outputProvider()
     {
-        $tests = [
-            'and',
-            'add',
-            'array',
-            'block',
-            'comparison',
-            'concat',
-            'conditional',
-            'div',
-            'for',
-            'if',
-            'in',
-            'include',
-            'join',
-            'logical',
-            'macro',
-            'macro_with',
-            'mul',
-            'or',
-            'output',
-            'set',
-            'sub',
-            'unless',
-            'xor',
-        ];
-        return array_map(function($item) {
-            return [$item];
-        }, $tests);
+        $paths = [];
+
+        $actual = realpath(__DIR__ . '/actual');
+
+        $dir = new \DirectoryIterator($actual);
+
+        foreach ($dir as $file) {
+            if ($file->isFile()) {
+                $outputFile = realpath(__DIR__ . '/output/' . $file->getBasename());
+                if (is_readable($outputFile)) {
+                    $paths[] = [
+                        trim(substr($file->getPathname(), strlen($actual)), '/'),
+                        $outputFile,
+                    ];
+                }
+            }
+        }
+
+        return $paths;
     }
 
     /**
      * @dataProvider outputProvider
      */
-    public function testOutput($data)
+    public function testOutput($actual, $expected)
     {
-        $expected = file_get_contents(__DIR__ . "/output/$data.html");
-        $template = $this->flow->load("$data.html");
+        $expected = file_get_contents($expected);
+        $template = $this->flow->load($actual);
         $actual = $template->render();
         $this->assertEquals($expected, $actual, get_class($template));
     }
