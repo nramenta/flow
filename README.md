@@ -756,7 +756,7 @@ The above will result in:
 It is possible to `yield` multiple times and to also provide context overrides:
 
     {% macro header %}
-    <header>{% yield(title="Flow" %}</header>
+    <header>{% yield(title="Flow") %}</header>
     {% endmacro %}
 
     {% call header with %}<h1>{{ title }}</h1>{% endcall %}
