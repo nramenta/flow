@@ -9,13 +9,15 @@ final class CallNode extends Node
     private $module;
     private $name;
     private $args;
+    private $block;
 
-    public function __construct($module, $name, $args, $line)
+    public function __construct($module, $name, $args, $block, $line)
     {
         parent::__construct($line);
         $this->module = $module;
         $this->name = $name;
         $this->args = $args;
+        $this->block = $block;
     }
 
     public function compile($compiler, $indent = 0)
@@ -24,18 +26,18 @@ final class CallNode extends Node
             'echo $this->expandMacro(\'' . $this->module . '\', \'' . $this->name .
             '\', array(', $indent
         );
+
         foreach ($this->args as $key => $val) {
             $compiler->raw("'$key' => ");
             $val->compile($compiler);
             $compiler->raw(',');
         }
-        if (isset($this->module)) {
-            $compiler->raw(
-                '), $context, $macros, $imports)'
-            );
-        } else {
-            $compiler->raw('), $context, $macros, $imports);');
+
+        $compiler->raw('), $context, $macros, $imports, function($context) {' . "\n");
+        if (isset($this->block)) {
+            $this->block->compile($compiler, $indent + 1);
         }
+        $compiler->raw('});' . "\n", $indent);
     }
 }
 

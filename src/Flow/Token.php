@@ -143,7 +143,7 @@ final class Token
 
     public function getValue() : string
     {
-        return $this->value;
+        return (string) $this->value;
     }
 
     public function getLine() : int

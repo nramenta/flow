@@ -97,8 +97,7 @@ abstract class Template
         }
     }
 
-    public function expandMacro($module, $name, $params, $context, $macros,
-        $imports)
+    public function expandMacro($module, $name, $params, $context, $macros, $imports, $block)
     {
         $macros  = $macros + $this->macros;
         $imports = $imports + $this->imports;
@@ -106,9 +105,7 @@ abstract class Template
             $macros = $macros + $imports[$module];
         }
         if (isset($macros[$name]) && is_callable($macros[$name])) {
-            return call_user_func(
-                $macros[$name], $params, $context, $macros, $imports
-            );
+            return call_user_func($macros[$name], $params, $context, $macros, $imports, $block);
         }
     }
 

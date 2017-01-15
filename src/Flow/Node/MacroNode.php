@@ -25,7 +25,7 @@ final class MacroNode extends Node
         $compiler->raw(
             'public function macro_' . $this->name .
             '($params = array(), $context = array(), $macros = array(),' .
-            ' $imports = array())' .
+            ' $imports = array(), $block = null)' .
             "\n", $indent
         );
         $compiler->raw("{\n", $indent);
@@ -44,9 +44,7 @@ final class MacroNode extends Node
         }
         $compiler->raw(") + \$context;\n", $indent + 1);
 
-        $compiler->raw("ob_start();\n", $indent + 1);
         $this->body->compile($compiler, $indent + 1);
-        $compiler->raw("return ob_get_clean();\n", $indent + 1);
         $compiler->raw("}\n", $indent);
     }
 }

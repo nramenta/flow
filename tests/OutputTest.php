@@ -39,6 +39,7 @@ class OutputTest extends PHPUnit_Framework_TestCase
             'join',
             'logical',
             'macro',
+            'macro_with',
             'mul',
             'or',
             'output',

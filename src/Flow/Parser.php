@@ -23,18 +23,19 @@ final class Parser
         $this->currentBlock = array();
 
         $this->tags = array(
-            'if'            => 'parseIf',
-            'for'           => 'parseFor',
-            'break'         => 'parseBreak',
-            'continue'      => 'parseContinue',
-            'extends'       => 'parseExtends',
-            'set'           => 'parseSet',
-            'block'         => 'parseBlock',
-            'parent'        => 'parseParent',
-            'macro'         => 'parseMacro',
-            'call'          => 'parseCall',
-            'import'        => 'parseImport',
-            'include'       => 'parseInclude',
+            'if'       => 'parseIf',
+            'for'      => 'parseFor',
+            'break'    => 'parseBreak',
+            'continue' => 'parseContinue',
+            'extends'  => 'parseExtends',
+            'set'      => 'parseSet',
+            'block'    => 'parseBlock',
+            'parent'   => 'parseParent',
+            'macro'    => 'parseMacro',
+            'call'     => 'parseCall',
+            'yield'    => 'parseYield',
+            'import'   => 'parseImport',
+            'include'  => 'parseInclude',
         );
 
         $this->inForLoop  = 0;
@@ -457,6 +458,7 @@ final class Parser
             $module = $name;
             $name = $this->parseName()->getValue();
         }
+
         $args = array();
 
         if ($this->stream->consume(Token::OPERATOR, '(')) {
@@ -481,8 +483,43 @@ final class Parser
             }
             $this->stream->expect(Token::OPERATOR, ')');
         }
+
+        $body = null;
+
+        if ($this->stream->consume(Token::NAME, 'with')) {
+            $this->stream->expect(Token::BLOCK_END);
+            $body = $this->subparse('endcall');
+            if ($this->stream->next()->getValue() != 'endcall') {
+                throw new SyntaxError('malformed call statement', $token);
+            }
+        }
+
         $this->stream->expect(Token::BLOCK_END);
-        return new Node\CallNode($module, $name, $args, $token->getLine());
+        return new Node\CallNode($module, $name, $args, $body, $token->getLine());
+    }
+
+    private function parseYield($token) : Node
+    {
+        $args = array();
+
+        if ($this->stream->consume(Token::OPERATOR, '(')) {
+            while (!$this->stream->test(Token::OPERATOR, ')')) {
+                if (!empty($args)) {
+                    $this->stream->expect(Token::OPERATOR, ',');
+                    if ($this->stream->test(Token::OPERATOR, ')'))
+                        break;
+                }
+                $key = $this->parseName()->getValue();
+                $this->stream->expect(Token::OPERATOR, '=');
+                $val = $this->parseExpression();
+                $args[$key] = $val;
+            }
+            $this->stream->expect(Token::OPERATOR, ')');
+        }
+
+        $this->stream->expect(Token::BLOCK_END);
+
+        return new Node\YieldNode($args, $token->getLine());
     }
 
     private function parseImport($token)

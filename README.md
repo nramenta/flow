@@ -739,6 +739,32 @@ macros with the same name in parent templates.
 Defining macros inside blocks or other macros is a syntax error. Redefining
 macros in a template is also a syntax error.
 
+### Macro block and yield
+
+You can call a macro with a block and `yield` inside the macro definition:
+
+    {% macro header %}
+    <header>{% yield %}</header>
+    {% endmacro %}
+
+    {% call header with %}<h1>{{ title or This is the title }}</h1>{% endcall %}
+
+The above will result in:
+
+    <header><h1>This is the title</h1></header>
+
+It is possible to `yield` multiple times and to also provide context overrides:
+
+    {% macro header %}
+    <header>{% yield(title="Flow" %}</header>
+    {% endmacro %}
+
+    {% call header with %}<h1>{{ title }}</h1>{% endcall %}
+
+Which will result in:
+
+    <header><h1>Flow</h1></header>
+
 ### Importing macros
 
 It's best to group macros in templates like you would functions in modules or

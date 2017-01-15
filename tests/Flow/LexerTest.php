@@ -14,10 +14,10 @@ class LexerTest extends PHPUnit_Framework_TestCase
 
         foreach ($dir as $file) {
             if ($file->isFile()) {
-                $paths[] = [
-                    $file->getPathname(),
-                    realpath(__DIR__ . '/../tokens/' . $file->getBasename('.html') . '.php'),
-                ];
+                $tokenFile = realpath(__DIR__ . '/../tokens/' . $file->getBasename('.html') . '.php');
+                if (is_readable($tokenFile)) {
+                    $paths[] = [$file->getPathname(), $tokenFile];
+                }
             }
         }
 
