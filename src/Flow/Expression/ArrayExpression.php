@@ -6,7 +6,7 @@ use Flow\Expression;
 
 final class ArrayExpression extends Expression
 {
-    protected $elements;
+    private $elements;
 
     public function __construct($elements, $line)
     {
