@@ -14,10 +14,12 @@ abstract class UnaryExpression extends Expression
         $this->node = $node;
     }
 
+    abstract function operator() : string;
+
     public function compile($compiler, $indent = 0)
     {
         $compiler->raw('(', $indent);
-        $this->operator($compiler);
+        $compiler->raw($this->operator());
         $compiler->raw('(');
         $this->node->compile($compiler);
         $compiler->raw('))');

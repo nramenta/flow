@@ -4,9 +4,9 @@ namespace Flow\Expression;
 
 final class PosExpression extends UnaryExpression
 {
-    public function operator($compiler)
+    public function operator() : string
     {
-        $compiler->raw('+');
+        return '+';
     }
 }
 
