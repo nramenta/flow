@@ -3,13 +3,14 @@
 ## Introduction
 
 Flow began life as a major fork of the original Twig templating engine by Armin
-Ronacher, which he made for [Chyrp], a blogging engine. Flow features template
-inheritance, includes, macros, custom helpers, whitespace control and many
-little features that makes writing templates enjoyable. Flow tries to give a
-consistent and coherent experience in writing clean templates. Flow compiles
-each template into its own PHP class; used with APC, this makes Flow a very
-fast and efficient templating engine. Templates can be read from files, loaded
-from string arrays, or even from databases with relative ease.
+Ronacher, which he made for [Chyrp], a now-defunct blogging engine. Flow
+features template inheritance, includes, macros, custom helpers, whitespace
+control and many little features that make writing templates enjoyable. Flow
+tries to give a consistent and coherent experience in writing clean templates.
+Flow compiles each template into its own PHP class; used in conjunction with
+PHP's OPcache, this makes Flow a very fast and efficient templating engine.
+Templates can be read from files, loaded from string arrays, or even from
+databases with relative ease.
 
 ## Installation
 
@@ -32,10 +33,11 @@ Using Flow in your code is straight forward:
 
 ```php
 <?php
-require 'path/to/src/Flow/Loader.php';
+require 'path/to/vendor/autoload.php';
+
 use Flow\Loader;
 use Flow\Adapter\FileAdapter;
-Loader::autoload();
+
 $flow = new Loader(
     Loader::RECOMPILE_NORMAL,
     new FileAdapter('path/to/templates'),
@@ -77,7 +79,7 @@ regardless of what the current mode is.
 In a typical development environment, the `Loader::RECOMPILE_NORMAL` mode should
 be used, while the `Loader::RECOMPILE_NEVER` mode should be used for production
 whenever possible. The `Loader::RECOMPILE_ALWAYS` mode is used only for internal
-debugging purposes by the developers and should generally be avoided.
+debugging and testing purposes by the developers and should generally be avoided.
 
 Two kinds of exceptions are thrown by Flow: `SyntaxError` for syntax errors, and
 `RuntimeException` for everything else.
@@ -332,7 +334,7 @@ It's possible to dynamically access an object or array attributes:
 
     Your name: {{ user[attr] }}
 
-## Helpers 
+## Helpers
 
 Helpers are simple functions you can use to test or modify values prior to use.
 There are two ways you can use them:
@@ -392,9 +394,9 @@ Or use the helper as a function:
 ### Built-in helpers
 
 `abs`, `bytes`, `capitalize`, `cycle`, `date`, `dump`, `e`, `escape`, `first`,
-`format`, `is_divisible_by`, `is_empty`, `is_even`, `is_odd`, `join`,
-`json_encode`, `keys`, `last`, `length`, `lower`, `nl2br`, `number_format`,
-`range`, `repeat`, `replace`, `strip_tags`, `title`, `trans`, `trim`,
+`format`, `is_iterable`, `is_divisible_by`, `is_empty`, `is_even`, `is_odd`,
+`join`, `json_encode`, `keys`, `last`, `length`, `lower`, `nl2br`,
+`number_format`, `range`, `repeat`, `replace`, `strip_tags`, `title`, `trim`,
 `truncate`, `unescape`, `upper`, `url_encode`, `word_wrap`.
 
 ### Registering custom helpers
@@ -590,7 +592,7 @@ Blocks are at the core of template inheritance:
     {% endblock %}
     This will never be displayed!
 
-When child_template.html is loaded, it will yield:
+When `child_template.html` is loaded, it will yield:
 
     <p>Hello</p>
 
