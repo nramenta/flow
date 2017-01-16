@@ -146,20 +146,6 @@ final class Parser
         return new NodeList($nodes, $line);
     }
 
-    private function parseName($expect = true, $match = null)
-    {
-        static $constants = array('true', 'false', 'null');
-        static $operators = array('and', 'xor', 'or', 'not', 'in');
-
-        if ($this->stream->test(Token::CONSTANT, $constants)) {
-            return $this->stream->expect(Token::CONSTANT, $match);
-        } elseif ($this->stream->test(Token::OPERATOR, $operators)) {
-            return $this->stream->expect(Token::OPERATOR, $match);
-        } elseif ($expect or $this->stream->test(Token::NAME)) {
-            return $this->stream->expect(Token::NAME, $match);
-        }
-    }
-
     private function parseIf($token) : Node
     {
         $line = $token->getLine();
@@ -221,10 +207,10 @@ final class Parser
         $this->inForLoop++;
         $line = $token->getLine();
         $key = null;
-        $value = $this->parseName()->getValue();
+        $value = $this->stream->expect(Token::NAME)->getValue();
         if ($this->stream->consume(Token::OPERATOR, ',')) {
             $key = $value;
-            $value = $this->parseName()->getValue();
+            $value = $this->stream->expect(Token::NAME)->getValue();
         }
         $this->stream->expect(Token::OPERATOR, 'in');
         $seq = $this->parseExpression();
@@ -312,12 +298,12 @@ final class Parser
     private function parseSet($token) : Node
     {
         $attrs = array();
-        $name = $this->parseName()->getValue();
+        $name = $this->stream->expect(Token::NAME)->getValue();
         while (!$this->stream->test(Token::OPERATOR, '=') &&
             !$this->stream->test(Token::BLOCK_END)
         ) {
             if ($this->stream->consume(Token::OPERATOR, '.')) {
-                $attrs[] = $this->parseName()->getValue();
+                $attrs[] = $this->stream->expect(Token::NAME)->getValue();
             } else {
                 $this->stream->expect(Token::OPERATOR, '[');
                 $attrs[] = $this->parseExpression();
@@ -349,7 +335,7 @@ final class Parser
                 'cannot declare blocks inside macros', $token
             );
         }
-        $name = $this->parseName()->getValue();
+        $name = $this->stream->expect(Token::NAME)->getValue();
         if (isset($this->blocks[$name])) {
             throw new SyntaxError(
                 sprintf('block "%s" already defined', $name),
@@ -362,7 +348,7 @@ final class Parser
             if ($this->stream->next()->getValue() != 'endblock') {
                 throw new SyntaxError('malformed block statement', $token);
             }
-            $this->parseName(false, $name);
+            $this->stream->consume(Token::NAME, $name);
         } else {
             $expr = $this->parseExpression();
             $body = new Node\OutputNode($expr, $token->getLine());
@@ -409,7 +395,7 @@ final class Parser
         }
 
         $this->inMacro = true;
-        $name = $this->parseName()->getValue();
+        $name = $this->stream->expect(Token::NAME)->getValue();
         if (isset($this->macros[$name])) {
             throw new SyntaxError(
                 sprintf('macro "%s" already defined', $name),
@@ -424,7 +410,7 @@ final class Parser
                     if ($this->stream->test(Token::OPERATOR, ')'))
                         break;
                 }
-                $key = $this->parseName()->getValue();
+                $key = $this->stream->expect(Token::NAME)->getValue();
                 if ($this->stream->consume(Token::OPERATOR, '=')) {
                     $val = $this->parseLiteralExpression();
                 } else {
@@ -449,14 +435,11 @@ final class Parser
 
     private function parseCall($token) : Node
     {
-        static $constants = array('true', 'false', 'null');
-        static $operators = array('and', 'xor', 'or', 'not', 'in');
-
         $module = null;
-        $name = $this->parseName()->getValue();
+        $name = $this->stream->expect(Token::NAME)->getValue();
         if ($this->stream->consume(Token::OPERATOR, '.')) {
             $module = $name;
-            $name = $this->parseName()->getValue();
+            $name = $this->stream->expect(Token::NAME)->getValue();
         }
 
         $args = array();
@@ -468,12 +451,10 @@ final class Parser
                     if ($this->stream->test(Token::OPERATOR, ')'))
                         break;
                 }
-                if (($this->stream->test(Token::NAME) ||
-                    $this->stream->test(Token::CONSTANT, $constants) ||
-                    $this->stream->test(Token::OPERATOR, $operators)) &&
+                if ($this->stream->test(Token::NAME) &&
                     $this->stream->look()->test(Token::OPERATOR, '=')
                 ) {
-                    $key = $this->parseName()->getValue();
+                    $key = $this->stream->expect(Token::NAME)->getValue();
                     $this->stream->expect(Token::OPERATOR, '=');
                     $val = $this->parseExpression();
                     $args[$key] = $val;
@@ -509,7 +490,7 @@ final class Parser
                     if ($this->stream->test(Token::OPERATOR, ')'))
                         break;
                 }
-                $key = $this->parseName()->getValue();
+                $key = $this->stream->expect(Token::NAME)->getValue();
                 $this->stream->expect(Token::OPERATOR, '=');
                 $val = $this->parseExpression();
                 $args[$key] = $val;
@@ -526,7 +507,7 @@ final class Parser
     {
         $import = $this->parseExpression();
         $this->stream->expect(Token::NAME, 'as');
-        $module = $this->parseName()->getValue();
+        $module = $this->stream->expect(Token::NAME)->getValue();
         $this->stream->expect(Token::BLOCK_END);
         $this->imports[$module] = new Node\ImportNode(
             $module, $import, $token->getLine()
@@ -787,14 +768,6 @@ final class Parser
                 $node = $this->parseFunctionCallExpression($node);
             }
             break;
-        case Token::CONSTANT:
-        case Token::OPERATOR:
-            if (($name = $this->parseName(false)) !== null) {
-                $node = new Expression\NameExpression(
-                    $name->getValue(), $token->getLine()
-                );
-                break;
-            }
         default:
             if ($this->stream->consume(Token::OPERATOR, '[')) {
                 $node = $this->parseArrayExpression();
@@ -949,7 +922,7 @@ final class Parser
         $token = $this->stream->getCurrentToken();
         if ($this->stream->consume(Token::OPERATOR, '.')) {
             $attr = new Expression\ConstantExpression(
-                $this->parseName()->getValue(),
+                $this->stream->expect(Token::NAME)->getValue(),
                 $token->getLine()
             );
         } else {
