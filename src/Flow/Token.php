@@ -31,50 +31,6 @@ final class Token
         $this->char  = $char;
     }
 
-    public static function getTypeAsString($type, $canonical = false) : string
-    {
-        if (is_string($type)) {
-            return $canonical ? (__CLASS__ . '::' . $type) : $type;
-        }
-
-        switch ($type) {
-        case self::EOF:
-            $name = 'EOF';
-            break;
-        case self::TEXT:
-            $name = 'TEXT';
-            break;
-        case self::BLOCK_BEGIN:
-            $name = 'BLOCK_BEGIN';
-            break;
-        case self::OUTPUT_BEGIN:
-            $name = 'OUTPUT_BEGIN';
-            break;
-        case self::BLOCK_END:
-            $name = 'BLOCK_END';
-            break;
-        case self::OUTPUT_END:
-            $name = 'OUTPUT_END';
-            break;
-        case self::NAME:
-            $name = 'NAME';
-            break;
-        case self::NUMBER:
-            $name = 'NUMBER';
-            break;
-        case self::STRING:
-            $name = 'STRING';
-            break;
-        case self::OPERATOR:
-            $name = 'OPERATOR';
-            break;
-        case self::CONSTANT:
-            $name = 'CONSTANT';
-            break;
-        }
-        return $canonical ? (__CLASS__ . '::' . $name) : $name;
-    }
-
     public static function getTypeError($type) : string
     {
         switch ($type) {
@@ -85,20 +41,28 @@ final class Token
             $name = 'text type';
             break;
         case self::BLOCK_BEGIN:
-            $name = 'block start (either "' . Lexer::BLOCK_BEGIN . '" or "' .
+            $name = 'block begin (either "' . Lexer::BLOCK_BEGIN . '" or "' .
                 Lexer::BLOCK_BEGIN_TRIM . '")';
             break;
         case self::OUTPUT_BEGIN:
-            $name = 'block start (either "' . Lexer::OUTPUT_BEGIN . '" or "' .
+            $name = 'output begin (either "' . Lexer::OUTPUT_BEGIN . '" or "' .
                 Lexer::OUTPUT_BEGIN_TRIM . '")';
+            break;
+        case self::RAW_BEGIN:
+            $name = 'raw begin (either "' . Lexer::RAW_BEGIN . '" or "' .
+                Lexer::RAW_BEGIN_TRIM . '")';
             break;
         case self::BLOCK_END:
             $name = 'block end (either "' . Lexer::BLOCK_END . '" or "' .
                 Lexer::BLOCK_END_TRIM . '")';
             break;
         case self::OUTPUT_END:
-            $name = 'block end (either "' . Lexer::OUTPUT_END . '" or "' .
+            $name = 'output end (either "' . Lexer::OUTPUT_END . '" or "' .
                 Lexer::OUTPUT_END_TRIM . '")';
+            break;
+        case self::RAW_END:
+            $name = 'raw end (either "' . Lexer::RAW_END . '" or "' .
+                Lexer::RAW_END_TRIM . '")';
             break;
         case self::NAME:
             $name = 'name type';
@@ -133,11 +97,8 @@ final class Token
         );
     }
 
-    public function getType($asString = false, $canonical = false)
+    public function getType()
     {
-        if ($asString) {
-            return self::getTypeAsString($this->type, $canonical);
-        }
         return $this->type;
     }
 
