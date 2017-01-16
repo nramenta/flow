@@ -4,6 +4,11 @@ namespace Flow\Expression;
 
 final class InclusionExpression extends LogicalExpression
 {
+    public function operator() : string
+    {
+        return '';
+    }
+
     public function compile($compiler, $indent = 0)
     {
         $compiler->raw('(in_array(', $indent);

@@ -4,7 +4,7 @@ namespace Flow\Expression;
 
 final class ConcatExpression extends BinaryExpression
 {
-    public function operator()
+    public function operator() : string
     {
         return '.';
     }

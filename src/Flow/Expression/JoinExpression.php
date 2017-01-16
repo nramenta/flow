@@ -4,7 +4,7 @@ namespace Flow\Expression;
 
 final class JoinExpression extends BinaryExpression
 {
-    public function operator()
+    public function operator() : string
     {
         return ".' '.";
     }

@@ -26,6 +26,8 @@ abstract class BinaryExpression extends Expression
         return $this->right;
     }
 
+    abstract public function operator() : string;
+
     public function compile($compiler, $indent = 0)
     {
         $op = $this->operator($compiler);
