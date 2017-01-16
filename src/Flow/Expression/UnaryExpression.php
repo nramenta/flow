@@ -14,7 +14,7 @@ abstract class UnaryExpression extends Expression
         $this->node = $node;
     }
 
-    abstract function operator() : string;
+    abstract public function operator() : string;
 
     public function compile($compiler, $indent = 0)
     {
