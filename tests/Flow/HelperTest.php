@@ -237,7 +237,8 @@ class HelperTest extends PHPUnit_Framework_TestCase
 
     public function test_unescape()
     {
-        $this->markTestIncomplete('test not implemented yet');
+        $var = '&lt;p data-info=&quot;foo&amp;bar&quot;&gt;foobar&lt;/p&gt;';
+        $this->assertEquals('<p data-info="foo&bar">foobar</p>', Helper::unescape($var));
     }
 
     public function test_upper()
