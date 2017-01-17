@@ -46,9 +46,7 @@ final class Helper
 
     public static function dump($obj = null)
     {
-        echo '<pre>';
-        print_r($obj);
-        echo '</pre>';
+        return var_export($obj, true);
     }
 
     public static function e($obj = null, $force = false)

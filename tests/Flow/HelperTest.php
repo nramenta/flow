@@ -46,12 +46,14 @@ class HelperTest extends PHPUnit_Framework_TestCase
 
     public function test_dump()
     {
-        $this->markTestIncomplete('test not implemented yet');
+        $var = [1, 2, 3];
+        $this->assertEquals(var_export($var, true), Helper::dump($var));
     }
 
     public function test_escape()
     {
-        $this->markTestIncomplete('test not implemented yet');
+        $var = '<p data-info="foo&bar">foobar</p>';
+        $this->assertEquals('&lt;p data-info=&quot;foo&amp;bar&quot;&gt;foobar&lt;/p&gt;', Helper::escape($var));
     }
 
     public function test_first()
