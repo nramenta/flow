@@ -30,7 +30,7 @@ final class FilterExpression extends Expression
 
     public function compile($compiler, $indent = 0)
     {
-        $stack = array();
+        $stack = [];
 
         for ($i = count($this->filters) - 1; $i >= 0; --$i) {
             list($name, $arguments) = $this->filters[$i];

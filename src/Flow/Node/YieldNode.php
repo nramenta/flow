@@ -17,7 +17,7 @@ final class YieldNode extends Node
     public function compile($compiler, $indent = 0)
     {
         $compiler->addTraceInfo($this, $indent);
-        $compiler->raw('call_user_func($block, array(', $indent);
+        $compiler->raw('call_user_func($block, [', $indent);
 
         foreach ($this->args as $key => $val) {
             $compiler->raw("'$key' => ");
@@ -25,7 +25,7 @@ final class YieldNode extends Node
             $compiler->raw(',');
         }
 
-        $compiler->raw(') + $context);' . "\n");
+        $compiler->raw('] + $context);' . "\n");
     }
 }
 

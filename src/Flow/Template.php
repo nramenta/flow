@@ -14,15 +14,15 @@ abstract class Template
     protected $imports;
     protected $stack;
 
-    public function __construct($loader, $helpers = array())
+    public function __construct($loader, $helpers = [])
     {
         $this->loader  = $loader;
         $this->helpers = $helpers;
         $this->parent  = null;
-        $this->blocks  = array();
-        $this->macros  = array();
-        $this->imports = array();
-        $this->stack   = array();
+        $this->blocks  = [];
+        $this->macros  = [];
+        $this->imports = [];
+        $this->stack   = [];
     }
 
     private function getPath($template)
@@ -112,7 +112,7 @@ abstract class Template
     public function pushContext(&$context, $name)
     {
         if (!array_key_exists($name, $this->stack)) {
-            $this->stack[$name] = array();
+            $this->stack[$name] = [];
         }
         array_push($this->stack[$name], isset($context[$name]) ?
             $context[$name] : null
@@ -147,13 +147,13 @@ abstract class Template
         return null;
     }
 
-    public function helper($name, $args = array())
+    public function helper($name, $args = [])
     {
         $args = func_get_args();
         $name = array_shift($args);
 
         try {
-            $helper = array('\Flow\Helper', $name);
+            $helper = ['\Flow\Helper', $name];
             if (isset($this->helpers[$name]) &&
                 is_callable($this->helpers[$name])) {
                 return call_user_func_array($this->helpers[$name], $args);
@@ -178,11 +178,11 @@ abstract class Template
 
     }
 
-    abstract public function display($context = array(), $blocks = array(),
-        $macros = array(), $imports = array());
+    abstract public function display($context = [], $blocks = [],
+        $macros = [], $imports = []);
 
-    public function render($context = array(), $blocks = array(),
-        $macros = array(), $imports = array())
+    public function render($context = [], $blocks = [],
+        $macros = [], $imports = [])
     {
         ob_start();
         $this->display($context, $blocks, $macros);
@@ -210,7 +210,7 @@ abstract class Template
         return $this->imports;
     }
 
-    public function getAttr($obj, $attr, $args = array())
+    public function getAttr($obj, $attr, $args = [])
     {
         if (is_array($obj)) {
             if (isset($obj[$attr])) {
@@ -218,7 +218,7 @@ abstract class Template
                     if (is_array($args)) {
                         array_unshift($args, $obj);
                     } else {
-                        $args = array($obj);
+                        $args = [$obj];
                     }
                     return call_user_func_array($obj[$attr], $args);
                 } else {
@@ -230,7 +230,7 @@ abstract class Template
         } elseif (is_object($obj)) {
 
             if (is_array($args)) {
-                $callable = array($obj, $attr);
+                $callable = [$obj, $attr];
                 return is_callable($callable) ?
                     call_user_func_array($callable, $args) : null;
             } else {
@@ -241,7 +241,7 @@ abstract class Template
                 } elseif (in_array('__get', $methods)) {
                     return $obj->__get($attr);
                 } else {
-                    $callable = array($obj, $attr);
+                    $callable = [$obj, $attr];
                     return is_callable($callable) ?
                         call_user_func($callable) : null;
                 }
@@ -288,7 +288,7 @@ abstract class Template
             if (!isset($obj->$attr)) $obj->$attr = null;
             $this->setAttr($obj->$attr, $attrs, $value);
         } else {
-            if (!is_array($obj)) $obj = array();
+            if (!is_array($obj)) $obj = [];
             $this->setAttr($obj[$attr], $attrs, $value);
         }
     }

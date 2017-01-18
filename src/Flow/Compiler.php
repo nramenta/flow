@@ -14,7 +14,7 @@ final class Compiler
         $this->result = '';
         $this->module = $module;
         $this->line   = 1;
-        $this->trace  = array();
+        $this->trace  = [];
     }
 
     private function write($string)
@@ -72,7 +72,7 @@ final class Compiler
     {
         if ($export) {
             return str_replace(
-                array("\n", ' '), '', var_export($this->trace, true)
+                ["\n", ' '], '', var_export($this->trace, true)
             );
         }
         return $this->trace;

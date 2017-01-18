@@ -41,7 +41,7 @@ final class Loader
         $this->source  = $source;
         $this->target  = $target;
         $this->helpers = $helpers;
-        $this->cache   = array();
+        $this->cache   = [];
     }
 
     private function getClassName(string $path) : string
@@ -52,7 +52,7 @@ final class Loader
     private function getCanonicalPath(string $template) : string
     {
         $path = preg_replace('#/{2,}#', '/', strtr($template, '\\', '/'));
-        $parts = array();
+        $parts = [];
 
         foreach (explode('/', $path) as $i => $part) {
             if ($part === '..') {

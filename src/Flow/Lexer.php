@@ -53,7 +53,7 @@ final class Lexer
         $this->char     = 1;
         $this->cursor   = 0;
         $this->position = self::POSITION_TEXT;
-        $this->queue    = array();
+        $this->queue    = [];
         $this->end      = strlen($this->source);
         $this->trim     = false;
     }
@@ -114,7 +114,7 @@ final class Lexer
     private function lexText() : array
     {
         $match = null;
-        $tokens = array();
+        $tokens = [];
 
         // all text
         if (!preg_match('/(.*?)(' .
@@ -212,7 +212,7 @@ final class Lexer
 
     private function lexBlock() : array
     {
-        $tokens = array();
+        $tokens = [];
         $match = null;
 
         if (preg_match('/(\s*)(' .
@@ -238,7 +238,7 @@ final class Lexer
 
     private function lexOutput() : array
     {
-        $tokens = array();
+        $tokens = [];
         $match = null;
 
         if (preg_match('/(\s*)(' .
@@ -264,7 +264,7 @@ final class Lexer
 
     private function lexRaw() : array
     {
-        $tokens = array();
+        $tokens = [];
         $match = null;
 
         if (preg_match('/(\s*)(' .
@@ -290,7 +290,7 @@ final class Lexer
 
     private function lexExpression() : array
     {
-        $tokens = array();
+        $tokens = [];
         $match = null;
 
         // eat whitespace

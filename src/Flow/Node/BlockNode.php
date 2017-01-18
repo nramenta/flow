@@ -22,8 +22,8 @@ final class BlockNode extends Node
         $compiler->addTraceInfo($this, $indent, false);
         $compiler->raw(
             'public function block_' . $this->name .
-            '($context, $blocks = array(), $macros = array(),' .
-            ' $imports = array())' . "\n", $indent
+            '($context, $blocks = [], $macros = [],' .
+            ' $imports = [])' . "\n", $indent
         );
         $compiler->raw("{\n", $indent);
         $this->body->compile($compiler, $indent + 1);

@@ -16,7 +16,7 @@ final class ArrayExpression extends Expression
 
     public function compile($compiler, $indent = 0)
     {
-        $compiler->raw('array(', $indent);
+        $compiler->raw('[', $indent);
         foreach ($this->elements as $node) {
             if (is_array($node)) {
                 $node[0]->compile($compiler);
@@ -27,7 +27,7 @@ final class ArrayExpression extends Expression
             }
             $compiler->raw(',');
         }
-        $compiler->raw(')');
+        $compiler->raw(']');
     }
 }
 

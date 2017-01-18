@@ -27,7 +27,7 @@ class HelperTest extends PHPUnit_Framework_TestCase
 
     public function test_cycle()
     {
-        $elements = array(1, 2, 3);
+        $elements = [1, 2, 3];
         $cycler = new Helper\Cycler($elements);
         $this->assertTrue($cycler instanceof \IteratorAggregate);
         $this->assertEquals(1, $cycler->next());
@@ -61,7 +61,7 @@ class HelperTest extends PHPUnit_Framework_TestCase
         $string = 'Hello, World!';
         $this->assertEquals('H', Helper::first($string));
 
-        $array = array(1, 2, 3);
+        $array = [1, 2, 3];
         $this->assertEquals(1, Helper::first($array));
 
         $arrayIterator = new \ArrayIterator($array);
@@ -72,7 +72,7 @@ class HelperTest extends PHPUnit_Framework_TestCase
         $object->bar = 'bar';
         $this->assertEquals('foo', Helper::first($object));
 
-        $this->assertEquals(42, Helper::first(array(), 42));
+        $this->assertEquals(42, Helper::first([], 42));
     }
 
     public function test_format()
@@ -104,7 +104,7 @@ class HelperTest extends PHPUnit_Framework_TestCase
     public function test_is_empty()
     {
         $this->assertTrue(Helper::is_empty(null));
-        $this->assertTrue(Helper::is_empty(array()));
+        $this->assertTrue(Helper::is_empty([]));
         $this->assertTrue(Helper::is_empty(new \ArrayIterator));
         $this->assertFalse(Helper::is_empty(new \StdClass));
     }
@@ -127,20 +127,20 @@ class HelperTest extends PHPUnit_Framework_TestCase
 
     public function test_join()
     {
-        $this->assertEquals('foobar', Helper::join(array('foo', 'bar')));
-        $this->assertEquals('foobar', Helper::join(new \ArrayIterator(array('foo', 'bar'))));
+        $this->assertEquals('foobar', Helper::join(['foo', 'bar']));
+        $this->assertEquals('foobar', Helper::join(new \ArrayIterator(['foo', 'bar'])));
     }
 
     public function test_json_encode()
     {
-        $var = array('foo', 'bar', 1, 2, 3, array('x' => 'y'));
+        $var = ['foo', 'bar', 1, 2, 3, ['x' => 'y']];
         $this->assertEquals(json_encode($var), Helper::json_encode($var));
     }
 
     public function test_keys()
     {
-        $hash = array('x' => 1, 'y' => 2);
-        $this->assertEquals(array('x', 'y'), Helper::keys($hash));
+        $hash = ['x' => 1, 'y' => 2];
+        $this->assertEquals(['x', 'y'], Helper::keys($hash));
     }
 
     public function test_last()
@@ -148,7 +148,7 @@ class HelperTest extends PHPUnit_Framework_TestCase
         $string = 'Hello, World!';
         $this->assertEquals('!', Helper::last($string));
 
-        $array = array(1, 2, 3);
+        $array = [1, 2, 3];
         $this->assertEquals(3, Helper::last($array));
 
         $arrayIterator = new \ArrayIterator($array);
@@ -159,13 +159,13 @@ class HelperTest extends PHPUnit_Framework_TestCase
         $object->bar = 'bar';
         $this->assertEquals('bar', Helper::last($object));
 
-        $this->assertEquals(42, Helper::last(array(), 42));
+        $this->assertEquals(42, Helper::last([], 42));
     }
 
     public function test_length()
     {
         $this->assertEquals(13, Helper::length('Hello, World!'));
-        $this->assertEquals(3, Helper::length(array(1, 2, 3)));
+        $this->assertEquals(3, Helper::length([1, 2, 3]));
         $this->assertEquals(1, Helper::length(1));
         $this->assertEquals(1, Helper::length(new \StdClass));
     }

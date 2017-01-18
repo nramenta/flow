@@ -25,12 +25,12 @@ final class AttributeExpression extends Expression
         $compiler->raw(', ');
         $this->attr->compile($compiler);
         if (is_array($this->args)) {
-            $compiler->raw(', array(');
+            $compiler->raw(', [');
             foreach ($this->args as $arg) {
                 $arg->compile($compiler);
                 $compiler->raw(', ');
             }
-            $compiler->raw(')');
+            $compiler->raw(']');
         } else {
             $compiler->raw(', false');
         }

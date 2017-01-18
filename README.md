@@ -46,10 +46,10 @@ $flow = new Loader(
 
 try {
     $template = $flow->load('home.html');
-    $template->display(array(
+    $template->display([
         'data_1' => 'My first data',
         'data_2' => 'My second data',
-    ));
+    ]);
 } catch (\Exception $e) {
     // something went wrong!
     die($e->getMessage());
@@ -305,15 +305,15 @@ functions stored in arrays:
 ```php
 <?php
 $template = $flow->load('my_template.html');
-$template->display(array(
-    'user' => array(
+$template->display([
+    'user' => [
         'firstname' => 'Rasmus',
         'lastname'  => 'Lerdorf',
         'fullname'  => function($self) {
             return $self['firstname'] . ' ' .  $self['lastname'];
         },
-    ),
-));
+    ],
+]);
 ```
 
 And call the `fullname` "method" in the template as follows:
@@ -408,10 +408,10 @@ Registering custom helpers is straightforward:
 use Flow\Loader;
 use Flow\Adapter\FileAdapter;
 
-$helpers = array(
+$helpers = [
     'random' => function() { return 4; },
     'exclamation' => function($s = null) { return $s . '!'; },
-);
+];
 
 $flow = new Loader(
     Loader::RECOMPILE_NORMAL,
@@ -884,10 +884,10 @@ use Flow\Adapter\FileAdapter;
 
 class ArrayAdapter implements Adapter
 {
-    static $templates = array(
+    static $templates = [
         'first.html' => 'First! {% include "second.html" %}',
         'second.html' => 'Second!',
-    );
+    ];
 
     public function isReadable(string $path) : bool
     {

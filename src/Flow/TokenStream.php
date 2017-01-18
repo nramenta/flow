@@ -14,7 +14,7 @@ final class TokenStream
     {
         $this->tokens = $tokens;
         $this->currentToken = new Token(Token::EOF, null, 1, 1);
-        $this->queue = array();
+        $this->queue = [];
         $this->cursor = 0;
         $this->eos = false;
         $this->next();

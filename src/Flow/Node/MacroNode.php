@@ -24,13 +24,13 @@ final class MacroNode extends Node
         $compiler->addTraceInfo($this, $indent, false);
         $compiler->raw(
             'public function macro_' . $this->name .
-            '($params = array(), $context = array(), $macros = array(),' .
-            ' $imports = array(), $block = null)' .
+            '($params = [], $context = [], $macros = [],' .
+            ' $imports = [], $block = null)' .
             "\n", $indent
         );
         $compiler->raw("{\n", $indent);
 
-        $compiler->raw('$context = $params + array(' . "\n", $indent + 1);
+        $compiler->raw('$context = $params + [' . "\n", $indent + 1);
         $i = 0;
         foreach ($this->args as $key => $val) {
             $compiler->raw(
@@ -42,7 +42,7 @@ final class MacroNode extends Node
             $compiler->raw(",\n");
             $i += 1;
         }
-        $compiler->raw(") + \$context;\n", $indent + 1);
+        $compiler->raw("] + \$context;\n", $indent + 1);
 
         $this->body->compile($compiler, $indent + 1);
         $compiler->raw("}\n", $indent);

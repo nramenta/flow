@@ -38,7 +38,7 @@ final class Module
         $compiler->raw(";\n\n");
 
         $compiler->raw(
-            'public function __construct($loader, $helpers = array())' . "\n",
+            'public function __construct($loader, $helpers = [])' . "\n",
             $indent + 1
         );
         $compiler->raw("{\n", $indent + 1);
@@ -49,41 +49,41 @@ final class Module
 
         // blocks constructor
         if (!empty($this->blocks)) {
-            $compiler->raw('$this->blocks = array(' . "\n", $indent + 2);
+            $compiler->raw('$this->blocks = [' . "\n", $indent + 2);
             foreach ($this->blocks as $name => $block) {
                 $compiler->raw(
-                    "'$name' => array(\$this, 'block_{$name}'),\n", $indent + 3
+                    "'$name' => [\$this, 'block_{$name}'],\n", $indent + 3
                 );
             }
-            $compiler->raw(");\n", $indent + 2);
+            $compiler->raw("];\n", $indent + 2);
         }
 
         // macros constructor
         if (!empty($this->macros)) {
-            $compiler->raw('$this->macros = array(' . "\n", $indent + 2);
+            $compiler->raw('$this->macros = [' . "\n", $indent + 2);
             foreach ($this->macros as $name => $macro) {
                 $compiler->raw(
-                    "'$name' => array(\$this, 'macro_{$name}'),\n", $indent + 3
+                    "'$name' => [\$this, 'macro_{$name}'],\n", $indent + 3
                 );
             }
-            $compiler->raw(");\n", $indent + 2);
+            $compiler->raw("];\n", $indent + 2);
         }
 
         // imports constructor
         if (!empty($this->imports)) {
-            $compiler->raw('$this->imports = array(' . "\n", $indent + 2);
+            $compiler->raw('$this->imports = [' . "\n", $indent + 2);
             foreach ($this->imports as $import) {
                 $import->compile($compiler, $indent + 3);
             }
-            $compiler->raw(");\n", $indent + 2);
+            $compiler->raw("];\n", $indent + 2);
         }
 
         $compiler->raw("}\n\n", $indent + 1);
 
         $compiler->raw(
             'public function display' .
-            '($context = array(), $blocks = array(), $macros = array(),' .
-            ' $imports = array())' .
+            '($context = [], $blocks = [], $macros = [],' .
+            ' $imports = [])' .
             "\n", $indent + 1
         );
         $compiler->raw("{\n", $indent + 1);

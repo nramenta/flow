@@ -24,7 +24,7 @@ final class CallNode extends Node
     {
         $compiler->raw(
             'echo $this->expandMacro(\'' . $this->module . '\', \'' . $this->name .
-            '\', array(', $indent
+            '\', [', $indent
         );
 
         foreach ($this->args as $key => $val) {
@@ -33,7 +33,7 @@ final class CallNode extends Node
             $compiler->raw(',');
         }
 
-        $compiler->raw('), $context, $macros, $imports, function($context) {' . "\n");
+        $compiler->raw('], $context, $macros, $imports, function($context) {' . "\n");
         if (isset($this->block)) {
             $this->block->compile($compiler, $indent + 1);
         }
