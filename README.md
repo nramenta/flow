@@ -864,11 +864,13 @@ Sometimes you need to load templates from a database or even string arrays. This
 is possible in Flow by simply passing an object of a class that implements the
 `Flow\Adapter` interface to the `adapter` option of the `Loader` constructor.
 
-The `Flow\Adapter` interface declares three methods:
+The `Flow\Adapter` interface declares five methods:
 
-- `isReadable($path)`: Determines whether the path is readable or not.
-- `lastModified($path)`: Returns the last modified time of the path.
-- `getContents($path)`: Returns the contents of the given path.
+- `isReadable`: Determines whether the path is readable or not.
+- `lastModified`: Returns the last modified time of the path.
+- `getContents`: Returns the contents of the given path.
+- `putContents`: Puts content in path and returns bytes written.
+- `getStreamUrl`: Returns the stream URL.
 
 The `source` option given in the `Loader` constructor still determines if a
 template is valid; i.e., whether the template can logically be found in the
