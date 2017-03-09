@@ -330,7 +330,7 @@ in the array.
 
 It's possible to dynamically access an object or array attributes:
 
-    {% set attr = 'name' %}
+    {% assign attr = 'name' %}
 
     Your name: {{ user[attr] }}
 
@@ -551,27 +551,27 @@ next iteration, respectively. The following will print "1 2 3":
         {% break if i > 2 %}
     {% endfor %}
 
-## Set
+## Assign
 
 It is sometimes unavoidable to set values to variables and object or array
-attributes; use the `set` construct:
+attributes; use the `assign` construct:
 
-    {% set fullname = user.firstname .. user.lastname %}
+    {% assign fullname = user.firstname .. user.lastname %}
 
-    {% set user.fullname = fullname %}
+    {% assign user.fullname = fullname %}
 
-You can also use `set` as a way to buffer output and store the result in a
+You can also use `assign` as a way to buffer output and store the result in a
 variable:
 
-    {% set slogan %}
+    {% assign slogan %}
     <p>This changes everything!</p>
-    {% endset %}
+    {% endassign %}
     ...
     {{ slogan }}
     ...
 
-The scope of variables introduced by the `set` construct is always local to its
-surrounding context.
+The scope of variables introduced by the `assign` construct is always local to
+its surrounding context.
 
 ## Blocks
 
@@ -630,13 +630,13 @@ thing a template will evaluate regardless of where its position is in the
 template. This is also why it's best to put your `extends` tags somewhere at the
 top of your templates. For example, the following will not work:
 
-    {% set extend_template = true %}
+    {% assign extend_template = true %}
     {% extends "parent.html" if extend_template %}
 
 The following will also not work because `tpl` is a value calculated inside the
 template before the `extends` tag:
 
-    {% set tpl = "parent.html" %}
+    {% assign tpl = "parent.html" %}
     {% extends tpl %}
 
 If however the `extend_template` or the `tpl` variables are context variables
@@ -648,11 +648,12 @@ declare an `extends` tag anywhere but at the top level scope.
 
 ### Parameterized template extension
 
-Using the `set` tag to override a context variable before extending a parent
+Using the `assign` tag to override a context variable before extending a parent
 template will not work. This is because an `extends` tag is the first thing a
 template will evaluate regardless of where its position is in the template and
-extending a template will discard the current extending template's layout (i.e.,
-everything outside `block` tags) in favor of the extended template's layout.
+extending a template will discard the current extending template's layout
+(i.e., everything outside `block` tags) in favor of the extended template's
+layout.
 
 You can however pass an array to override a parent template's context when
 extending it. With a parent template:
@@ -671,10 +672,11 @@ Rendering the child template will produce:
 
     TADA!
 
-Likewise, you can't use variables created using the `set` tag inside the array
-parameter used with the `extends` tag. For example, the following will not work:
+Likewise, you can't use variables created using the `assign` tag inside the
+array parameter used with the `extends` tag. For example, the following will
+not work:
 
-    {% set foo = "BAR" %}
+    {% assign foo = "BAR" %}
     {% extends "parent.html" with [some_string => foo] %}
 
 ## Parent
@@ -716,8 +718,8 @@ You can also use named arguments:
 Extra named arguments overwrite positional arguments with the same name and
 previous named arguments with the same name. The parentheses are optional only
 if there are no arguments passed. Parameters and variables declared inside
-macros with the `set` construct are local to the macro and will cease to exist
-once the macro returns.
+macros with the `assign` construct are local to the macro and will cease to
+exist once the macro returns.
 
 Macros are dynamically scoped. They inherit the calling context:
 
@@ -725,7 +727,7 @@ Macros are dynamically scoped. They inherit the calling context:
     <p>{{ "Hello," .. name }}</p>
     {% endmacro %}
 
-    {% set name = "Joe" %}
+    {% assign name = "Joe" %}
 
     {% call greet %}
 
@@ -749,7 +751,7 @@ You can call a macro `with` a block and `yield` inside the macro definition:
     <header>{% yield %}</header>
     {% endmacro %}
 
-    {% set title = "Flow macro blocks is cool" %}
+    {% assign title = "Flow macro blocks is cool" %}
 
     {% call header with %}<h1>{{ title or "This is the title" }}</h1>{% endcall %}
 

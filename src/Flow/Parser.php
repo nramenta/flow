@@ -28,7 +28,7 @@ final class Parser
             'break'    => 'parseBreak',
             'continue' => 'parseContinue',
             'extends'  => 'parseExtends',
-            'set'      => 'parseSet',
+            'assign'      => 'parseAssign',
             'block'    => 'parseBlock',
             'parent'   => 'parseParent',
             'macro'    => 'parseMacro',
@@ -295,7 +295,7 @@ final class Parser
         return null;
     }
 
-    private function parseSet($token) : Node
+    private function parseAssign($token) : Node
     {
         $attrs = [];
         $name = $this->stream->expect(Token::NAME)->getValue();
@@ -313,17 +313,17 @@ final class Parser
         if ($this->stream->consume(Token::OPERATOR, '=')) {
             $value = $this->parseExpression();
             $node = $this->parseIfModifier(
-                $token, new Node\SetNode($name, $attrs, $value, $token->getLine())
+                $token, new Node\AssignNode($name, $attrs, $value, $token->getLine())
             );
             $this->stream->expect(Token::BLOCK_END);
         } else {
             $this->stream->expect(Token::BLOCK_END);
-            $body = $this->subparse('endset');
-            if ($this->stream->next()->getValue() != 'endset') {
+            $body = $this->subparse('endassign');
+            if ($this->stream->next()->getValue() != 'endassign') {
                 throw new SyntaxError('malformed set statement', $token);
             }
             $this->stream->expect(Token::BLOCK_END);
-            $node = new Node\SetNode($name, $attrs, $body, $token->getLine());
+            $node = new Node\AssignNode($name, $attrs, $body, $token->getLine());
         }
         return $node;
     }

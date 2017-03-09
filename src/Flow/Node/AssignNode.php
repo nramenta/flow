@@ -5,7 +5,7 @@ namespace Flow\Node;
 use Flow\Node;
 use Flow\NodeList;
 
-final class SetNode extends Node
+final class AssignNode extends Node
 {
     private $name;
     private $attrs;

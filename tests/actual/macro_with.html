@@ -1,13 +1,13 @@
 {% macro foobar(name="none") %}
 Macro: {{ name }}
-{% set foo = "BAR" %}
+{% assign foo = "BAR" %}
 {% yield(i=i+1) %}
-{% set i = 42 %}
+{% assign i = 42 %}
 {% yield %}
 {{ false }}
 {% endmacro %}
 
-{% set foo = "bar" %}
+{% assign foo = "bar" %}
 
 {% for i in [1,2,3] %}
 {% call foobar(age=10) with %}
